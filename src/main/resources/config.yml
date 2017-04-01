@@ -1,0 +1,9 @@
+blockMap: 'blockmap.bmp'
+heightMap: 'heightmap.bmp'
+surface:
+  255,0,0: 3
+  0,255,0: 2
+  0,0,255: 9
+  255,255,0: 12
+schematics:
+  - tree.schematic
