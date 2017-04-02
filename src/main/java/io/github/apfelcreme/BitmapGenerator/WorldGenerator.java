@@ -1,14 +1,18 @@
 package io.github.apfelcreme.BitmapGenerator;
 
 import io.github.apfelcreme.BitmapGenerator.Populator.FloraPopulator;
+import io.github.apfelcreme.BitmapGenerator.Populator.OrePopulator;
 import io.github.apfelcreme.BitmapGenerator.Populator.SchematicPopulator;
+import net.minecraft.server.v1_11_R1.*;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
+import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_11_R1.generator.NormalChunkGenerator;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.material.MaterialData;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
@@ -37,6 +41,8 @@ public class WorldGenerator extends ChunkGenerator {
     private BufferedImage blockMap;
     private BufferedImage heightMap;
 
+    private ChunkProviderServer chunkProvider = null;
+
     public WorldGenerator(BitmapGenerator plugin, BufferedImage blockMap, BufferedImage heightMap) {
         this.plugin = plugin;
         this.blockMap = blockMap;
@@ -44,7 +50,7 @@ public class WorldGenerator extends ChunkGenerator {
     }
 
     @Override
-    public ChunkData generateChunkData(World world, Random random, int x, int z, BiomeGrid biome) {
+    public synchronized ChunkData generateChunkData(World world, Random random, int x, int z, BiomeGrid biome) {
         ChunkData data = createChunkData(world);
         int minChunkX = -((blockMap.getWidth() / 2) / 16);
         int minChunkZ = -((blockMap.getHeight() / 2) / 16);
@@ -54,49 +60,41 @@ public class WorldGenerator extends ChunkGenerator {
         int diffX = x - minChunkX;
         int diffZ = z - minChunkZ;
 
-        System.out.println(maxChunkX + " " + minChunkZ + " " + maxChunkX + " " + maxChunkZ);
-        System.out.println(diffX + " " + diffZ);
-//        System.out.println(blockMap.getWidth()+ "x"+blockMap.getHeight());
-//        System.out.println(heightMap.getWidth()+ "x"+heightMap.getHeight());
-
+        int surfaceLayerHeight = 4;
 
         if (x >= minChunkX && x <= maxChunkX && z >= minChunkZ && z <= maxChunkZ) {
-            MaterialData[][][] pasteData = new MaterialData[16][256][16];
             for (int cX = 0; cX < 16; cX++) {
                 for (int cZ = 0; cZ < 16; cZ++) {
-                    pasteData[cX][0][cZ] = new MaterialData(Material.BEDROCK);
+                    biome.setBiome(cX, cZ, Biome.BEACHES);
+                    data.setBlock(cX, 0, cZ, Material.BEDROCK);
                     for (int cY = 1; cY < 256; cY++) {
-                        Color color = new Color(heightMap.getRGB((diffX * 16) + cX, (diffZ * 16) + cZ));
-                        int heighestBlock = color.getRed();
+                        int heighestBlock = (heightMap.getRGB((diffX * 16) + cX, (diffZ * 16) + cZ)  >> 16) & 0x000000FF;
+
                         // fill with the destined block
-                        if (cY <= heighestBlock) {
+                        if (cY <= heighestBlock && cY > (heighestBlock - surfaceLayerHeight)) {
                             int blockR = (blockMap.getRGB((diffX * 16) + cX, (diffZ * 16) + cZ) >> 16) & 0x000000FF;
                             int blockG = (blockMap.getRGB((diffX * 16) + cX, (diffZ * 16) + cZ) >> 8) & 0x000000FF;
                             int blockB = (blockMap.getRGB((diffX * 16) + cX, (diffZ * 16) + cZ)) & 0x000000FF;
                             MaterialData material = plugin.getBitmapGeneratorConfig().getBlock(blockR, blockG, blockB);
                             if (material != null) {
-                                pasteData[cX][cY][cZ] = material;
+                                data.setBlock(cX, cY, cZ, material);
                             }
+                        } else if (cY <= (heighestBlock - surfaceLayerHeight)) { // everything under the surface layer
+//                            data.setBlock(cX, cY, cZ, naturalChunkData[cX][cY][cZ]);
+                            data.setBlock(cX, cY, cZ, Material.STONE);
+                            // ores will be populated later
+                        } else if (cY >= heighestBlock) { // everything above the highest block -> air
+                            data.setBlock(cX, cY, cZ, new MaterialData(Material.AIR));
                         }
 
                         // Fill everything under level 61 with water
-                        if (pasteData[cX][cY][cZ] == null && cY <= 60) {
-                            pasteData[cX][cY][cZ] = new MaterialData(Material.WATER);
+                        if ((data.getType(cX, cY, cZ) == null || data.getType(cX, cY, cZ) == Material.AIR) && cY <= 60) {
+                            data.setBlock(cX, cY, cZ, new MaterialData(Material.WATER));
                         }
                     }
                 }
             }
-            for (int cX = 0; cX < 16; cX++) {
-                for (int cY = 0; cY < 256; cY++) {
-                    for (int cZ = 0; cZ < 16; cZ++) {
-//                        System.out.println(cX + " " + cY + " " + cZ + " -> " + pasteData[cX][cY][cZ]);
-                        if (pasteData[cX][cY][cZ] != null) {
-                            data.setBlock(cX, cY, cZ, pasteData[cX][cY][cZ]);
-                        }
-                    }
-                }
-            }
-        } else{
+        } else {
             // No image-data for this chunk: fill with water
             for (int cX = 0; cX < 16; cX++) {
                 for (int cZ = 0; cZ < 16; cZ++) {
@@ -107,13 +105,49 @@ public class WorldGenerator extends ChunkGenerator {
                 }
             }
         }
-
         return data;
+    }
+
+    /**
+     * pregenerates a chunk with the default world generator
+     * @param w the world
+     * @param x x coordinate of the chunk
+     * @param z z coordinate of the chunk
+     * @return the block the default generator would paste
+     */
+    private MaterialData[][][] getNaturalChunk(World w, int x, int z) {
+        if (chunkProvider == null) {
+            CraftWorld cw = (CraftWorld) w;
+            WorldServer ws = cw.getHandle();
+            IChunkLoader loader = ws.getDataManager().createChunkLoader(ws.worldProvider);
+            NormalChunkGenerator _gen = new NormalChunkGenerator(ws, w.getSeed());
+            chunkProvider = new ChunkProviderServer(ws, loader, _gen);
+        }
+
+        MaterialData[][][] naturalData = new MaterialData[16][256][16];
+
+
+        Chunk chunk = chunkProvider.getChunkAt(x, z);
+        chunk.p();
+
+        for (int bX = 0; bX < 16; bX++) {
+            for (int bY = 0; bY < 256; bY++) {
+                for (int bZ = 0; bZ < 16; bZ++) {
+                    naturalData[bX][bY][bZ] = new MaterialData(Material.getMaterial(
+                            Block.getId(chunk.getBlockData(new BlockPosition(bX, bY, bZ)).getBlock())));
+                }
+            }
+        }
+        return naturalData;
     }
 
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
-        return Arrays.asList(new FloraPopulator(), new SchematicPopulator(plugin));
+        return Arrays.asList(
+                new FloraPopulator(),
+                new SchematicPopulator(plugin),
+                new OrePopulator(plugin)
+        );
     }
 
 }

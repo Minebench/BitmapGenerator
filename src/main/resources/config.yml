@@ -5,5 +5,63 @@ surface:
   0,255,0: 2
   0,0,255: 9
   255,255,0: 12
-schematics:
-  - tree.schematic
+population:
+  oreVeinsPerChunk: 12
+  ore:
+    DIAMOND_ORE:
+      chance: 0.05
+      length: 2
+      stroke: 1
+    GOLD_ORE:
+      chance: 0.1
+      length: 2
+      stroke: 2
+    IRON_ORE:
+      chance: 0.2
+      length: 3
+      stroke: 2
+    COAL_ORE:
+      chance: 0.3
+      length: 3
+      stroke: 3
+    EMERALD_ORE:
+      chance: 0.05
+      length: 1
+      stroke: 0
+    LAPIS_ORE:
+      chance: 0.1
+      length: 2
+      stroke: 2
+    REDSTONE_ORE:
+      chance: 0.2
+      length: 3
+      stroke: 2
+    DIRT:
+      chance: 0.6
+      length: 5
+      stroke: 4
+    AIR:
+      chance: 0.8
+      length: 12
+      stroke: 5
+  schematics:
+    2:
+      schematic:
+        Palm1:
+          chance: 0.3
+        Palm2:
+          chance: 0.3
+        Palm3:
+          chance: 0.3
+        Palm4:
+          chance: 0.3
+        Palm5:
+          chance: 0.3
+      count: 2
+    12:
+      schematic:
+        kaktus:
+          chance: 0.2
+        deadshrub:
+          chance: 0.4
+      count: 4
