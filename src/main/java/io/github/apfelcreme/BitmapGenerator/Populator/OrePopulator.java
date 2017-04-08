@@ -1,12 +1,13 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
+import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.generator.BlockPopulator;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -32,35 +33,45 @@ import java.util.Random;
 public class OrePopulator extends BlockPopulator {
 
     private BitmapGenerator plugin;
-    private PopulationSettings populationSettings;
+    private final BufferedImage biomeMap;
 
-    public OrePopulator(BitmapGenerator plugin) {
+    public OrePopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
         this.plugin = plugin;
-        this.populationSettings = new PopulationSettings();
+        this.biomeMap = biomeMap;
     }
 
+
     @Override
-    public void populate(World world, Random random, Chunk chunk) {
+    public synchronized void populate(World world, Random random, Chunk chunk) {
 
-        for (int i = 0; i < plugin.getConfig().getInt("population.oreVeinsPerChunk", 6); i++) {
-            PopulationSettings.Vein vein = populationSettings.getRandomOre();
+        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
+        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
+        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
+        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
+        if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
+            for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
+                for (int i = 0; i < biomeDefinition.getVeinCount(); i++) {
+                    BiomeDefinition.OreVein vein = biomeDefinition.nextVein();
+                    int startX = random.nextInt(10);
+                    int startY = 5 + random.nextInt(40);
+                    int startZ = random.nextInt(10);
+                    double alpha = Math.toRadians(random.nextInt(90));
+                    double beta = Math.toRadians(random.nextInt(90));
 
-            int startX = random.nextInt(10);
-            int startY = 5 + random.nextInt(40);
-            int startZ = random.nextInt(10);
-            double alpha = Math.toRadians(random.nextInt(90));
-            double beta = Math.toRadians(random.nextInt(90));
-
-            int endX = (int) (startX + (vein.length * Math.cos(alpha)));
-            int endY = (int) (startY + (vein.length * Math.sin(alpha)));
-            int endZ = (int) (startZ + (vein.length * Math.cos(beta)));
-
-            List<Point3D> path = bresenham(new Point3D(startX, startY, startZ), new Point3D(endX, endY, endZ));
-            for (Point3D point : path) {
-                for (int sX = 0; sX < vein.stroke; sX++) {
-                    for (int sY = 0; sY < vein.stroke; sY++) {
-                        for (int sZ = 0; sZ < vein.stroke; sZ++) {
-                            chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).setType(vein.material);
+                    int endX = (int) (startX + (vein.getLength() * Math.cos(alpha)));
+                    int endY = (int) (startY + (vein.getLength() * Math.sin(alpha)));
+                    int endZ = (int) (startZ + (vein.getLength() * Math.cos(beta)));
+                    List<Point3D> path = bresenham(new Point3D(startX, startY, startZ), new Point3D(endX, endY, endZ));
+                    for (Point3D point : path) {
+                        for (int sX = 0; sX < vein.getStroke(); sX++) {
+                            for (int sY = 0; sY < vein.getStroke(); sY++) {
+                                for (int sZ = 0; sZ < vein.getStroke(); sZ++) {
+                                    if (chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).getType() == Material.STONE) {
+                                        chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).setTypeIdAndData(
+                                                vein.getOre().getItemType().getId(), vein.getOre().getData(), true);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -182,60 +193,6 @@ public class OrePopulator extends BlockPopulator {
             this.y = y;
             this.z = z;
         }
-    }
-
-    public class PopulationSettings {
-
-        private List<Vein> availableVeins;
-
-        public PopulationSettings() {
-            availableVeins = new ArrayList<>();
-            ConfigurationSection section = plugin.getConfig().getConfigurationSection("population.ore");
-            for (String oreName : section.getKeys(false)) {
-                Material material = Material.getMaterial(oreName);
-                if (material != null) {
-                    availableVeins.add(new Vein(material,
-                            section.getDouble(material.name() + ".chance"),
-                            section.getInt(material.name() + ".length"),
-                            section.getInt(material.name() + ".stroke")
-                    ));
-                }
-            }
-        }
-
-        /**
-         * returns a random ore
-         * @return a random ore
-         */
-        public Vein getRandomOre() {
-            int totalSum = 0;
-            Random random = new Random();
-            for (Vein vein : availableVeins) {
-                totalSum += vein.chance * 100;
-            }
-            int index = random.nextInt(totalSum);
-            int sum = 0;
-            int i = 0;
-            while (sum < index) {
-                sum = sum + (int) (availableVeins.get(i++).chance * 100);
-            }
-            return availableVeins.get(Math.max(0, i - 1));
-        }
-
-        public class Vein {
-            private Material material;
-            private double chance;
-            private int length;
-            private int stroke;
-
-            public Vein(Material material, double chance, int length, int stroke) {
-                this.material = material;
-                this.chance = chance;
-                this.length = length;
-                this.stroke = stroke;
-            }
-        }
-
     }
 
 }

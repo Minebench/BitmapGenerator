@@ -3,13 +3,12 @@ package io.github.apfelcreme.BitmapGenerator.Populator;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
+import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
 import org.bukkit.generator.BlockPopulator;
-import org.bukkit.material.MaterialData;
 
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -30,20 +29,18 @@ import java.util.Random;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class FloraPopulator extends BlockPopulator {
-
+public class TreePopulator extends BlockPopulator {
 
     private final BitmapGenerator plugin;
     private final BufferedImage biomeMap;
 
-    public FloraPopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
+    public TreePopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
         this.plugin = plugin;
         this.biomeMap = biomeMap;
     }
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
-
         int minChunkX = -((biomeMap.getWidth() / 2) / 16);
         int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
         int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
@@ -51,15 +48,16 @@ public class FloraPopulator extends BlockPopulator {
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
             for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
-                for (int i = 0; i < biomeDefinition.getFloraCount(); i++) {
-                    int floraX = (chunk.getX() << 4) + random.nextInt(16);
-                    int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int floraY = world.getHighestBlockYAt(floraX, floraZ);
-                    if (plugin.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
-                        MaterialData floraData = biomeDefinition.nextFloraData();
-                        if (floraData != null) {
-                            if (biomeDefinition.isGroundBlock(world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                                world.getBlockAt(floraX, floraY, floraZ).setTypeIdAndData(floraData.getItemType().getId(), floraData.getData(), true);
+                for (int i = 0; i < biomeDefinition.getTreeCount(); i++) {
+                    int treeX = (chunk.getX() << 4) + random.nextInt(16);
+                    int treeZ = (chunk.getZ() << 4) + random.nextInt(16);
+                    int treeY = world.getHighestBlockYAt(treeX, treeZ);
+                    if (biomeDefinition.isGroundBlock(world.getBlockAt(treeX, treeY - 1, treeZ))) {
+                        if (plugin.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
+                            BiomeDefinition.TreeData treeData = biomeDefinition.nextTree();
+                            if (treeData != null) {
+                                CraftWorld craftWorld = ((CraftWorld) world).getHandle().getWorld();
+                                craftWorld.generateTree(new Location(world, treeX, treeY, treeZ), treeData.getType());
                             }
                         }
                     }
@@ -67,4 +65,5 @@ public class FloraPopulator extends BlockPopulator {
             }
         }
     }
+
 }
