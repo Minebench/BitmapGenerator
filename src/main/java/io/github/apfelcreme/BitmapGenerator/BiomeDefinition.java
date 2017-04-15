@@ -34,6 +34,7 @@ public class BiomeDefinition {
     private int g;
     private int b;
     private Biome biome;
+    private boolean snowfall;
     private List<BlockData> blocks;
     private int floraCount;
     private List<BlockData> floraTypes;
@@ -45,13 +46,14 @@ public class BiomeDefinition {
     private List<Schematic> schematics;
 
 
-    public BiomeDefinition(String name, int r, int g, int b, Biome biome, List<BlockData> blocks, int floraCount, List<BlockData> floraTypes, int treeCount,
+    public BiomeDefinition(String name, int r, int g, int b, Biome biome, boolean snowfall, List<BlockData> blocks, int floraCount, List<BlockData> floraTypes, int treeCount,
                            List<TreeData> treeTypes, int veinCount, List<OreVein> veinTypes, int schematicCount, List<Schematic> schematics) {
         this.name = name;
         this.r = r;
         this.g = g;
         this.b = b;
         this.biome = biome;
+        this.snowfall = snowfall;
         this.blocks = blocks;
         this.floraCount = floraCount;
         this.floraTypes = floraTypes;
@@ -61,6 +63,16 @@ public class BiomeDefinition {
         this.veinTypes = veinTypes;
         this.schematicCount = schematicCount;
         this.schematics = schematics;
+    }
+
+
+    /**
+     * returns the name
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -97,6 +109,15 @@ public class BiomeDefinition {
      */
     public Biome getBiome() {
         return biome;
+    }
+
+    /**
+     * should snow be placed on top of the terrain?
+     *
+     * @return true if so, false otherwise
+     */
+    public boolean isSnowfall() {
+        return snowfall;
     }
 
     /**

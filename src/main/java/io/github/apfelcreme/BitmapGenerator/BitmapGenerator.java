@@ -6,11 +6,14 @@ import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Copyright (C) 2017 Lord36 aka Apfelcreme
@@ -69,7 +72,36 @@ public class BitmapGenerator extends JavaPlugin {
             getLogger().severe("BiomeMap height does not equal HeightMap height!");
             getServer().getPluginManager().disablePlugin(this);
         }
+        getLogger().info("Loading biomes...");
         biomes = bitmapGeneratorConfig.loadBiomes();
+        getLogger().info("Checking biome validity...");
+        checkTerrainValidity();
+    }
+
+    private void checkTerrainValidity() {
+        Set<Integer> rgbValues = new HashSet<>();
+        for (int x = 0; x < biomeMap.getWidth(); x++) {
+            for (int y = 0; y < biomeMap.getHeight(); y++) {
+                rgbValues.add(biomeMap.getRGB(x, y));
+            }
+        }
+        getLogger().info("Biomes found: ");
+        for (Integer rgbValue : rgbValues) {
+            Color color = new Color(rgbValue);
+            BiomeDefinition foundBiome = null;
+            for (BiomeDefinition biomeDefinition : biomes) {
+                if (biomeDefinition.getR() == color.getRed()
+                        && biomeDefinition.getG() == color.getGreen()
+                        && biomeDefinition.getB() == color.getBlue()) {
+                    foundBiome = biomeDefinition;
+                }
+            }
+            if (foundBiome != null) {
+                getLogger().info(" [" + color.getRed()+","+color.getGreen()+","+color.getBlue() + "] -> " + foundBiome.getName());
+            } else {
+                getLogger().info(" [" + color.getRed()+","+color.getGreen()+","+color.getBlue() + "] could not be assigned to any biome!");
+            }
+        }
     }
 
     @Override
@@ -114,6 +146,7 @@ public class BitmapGenerator extends JavaPlugin {
 
     /**
      * returns the height at location
+     *
      * @param blockX the x coordinate of the block
      * @param blockZ the z coordinate of the block
      * @return the height of the location referenced in the height map

@@ -1,9 +1,6 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import io.github.apfelcreme.BitmapGenerator.Populator.FloraPopulator;
-import io.github.apfelcreme.BitmapGenerator.Populator.OrePopulator;
-import io.github.apfelcreme.BitmapGenerator.Populator.SchematicPopulator;
-import io.github.apfelcreme.BitmapGenerator.Populator.TreePopulator;
+import io.github.apfelcreme.BitmapGenerator.Populator.*;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.generator.BlockPopulator;
@@ -105,8 +102,9 @@ public class WorldGenerator extends ChunkGenerator {
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
         return Arrays.asList(
-                new SchematicPopulator(plugin, biomeMap),
                 new TreePopulator(plugin, biomeMap),
+                new SnowPopulator(plugin, biomeMap),
+                new SchematicPopulator(plugin, biomeMap),
                 new FloraPopulator(plugin, biomeMap),
                 new OrePopulator(plugin, biomeMap)
         );

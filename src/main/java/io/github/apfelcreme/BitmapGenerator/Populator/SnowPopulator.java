@@ -5,12 +5,9 @@ import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.generator.BlockPopulator;
-import org.bukkit.material.MaterialData;
 
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -31,12 +28,12 @@ import java.util.Random;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class FloraPopulator extends BlockPopulator {
+public class SnowPopulator extends BlockPopulator {
 
     private final BitmapGenerator plugin;
     private final BufferedImage biomeMap;
 
-    public FloraPopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
+    public SnowPopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
         this.plugin = plugin;
         this.biomeMap = biomeMap;
     }
@@ -51,38 +48,19 @@ public class FloraPopulator extends BlockPopulator {
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
             for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
-                for (int i = 0; i < biomeDefinition.getFloraCount(); i++) {
-                    int floraX = (chunk.getX() << 4) + random.nextInt(16);
-                    int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int floraY = world.getHighestBlockYAt(floraX, floraZ);
-                    if (plugin.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
-                        MaterialData floraData = biomeDefinition.nextFloraData();
-                        if (floraData != null) {
-                            if (biomeDefinition.isGroundBlock(world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                                if (canBePlanted(floraData, world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                                    world.getBlockAt(floraX, floraY, floraZ).setTypeIdAndData(floraData.getItemType().getId(), floraData.getData(), true);
-                                }
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        int snowX = (chunk.getX() << 4) + x;
+                        int snowZ = (chunk.getZ() << 4) + z;
+                        int snowY = world.getHighestBlockYAt(snowX, snowZ);
+                        if (plugin.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
+                            if (biomeDefinition.isSnowfall()) {
+                                world.getBlockAt(snowX, snowY, snowZ).setTypeIdAndData(Material.SNOW.getId(), (byte) (1 + random.nextInt(7)), true);
                             }
                         }
                     }
                 }
             }
         }
-    }
-
-    /**
-     * checks if a flora type can be planted on the given block
-     *
-     * @param flora       the flora
-     * @param groundBlock the block
-     * @return true if it can be planted there, false otherwise
-     */
-    private boolean canBePlanted(MaterialData flora, Block groundBlock) {
-        if (flora.getItemType() == Material.LONG_GRASS) {
-            if (groundBlock.getType() != Material.GRASS && groundBlock.getType() != Material.DIRT) {
-                return false;
-            }
-        }
-        return true;
     }
 }

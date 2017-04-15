@@ -58,6 +58,7 @@ public class BitmapGeneratorConfig {
             int g = config.getInt("biomes." + biomeName + ".g");
             int b = config.getInt("biomes." + biomeName + ".b");
             Biome biome = Biome.valueOf(config.getString("biomes." + biomeName + ".biome"));
+            boolean snowfall = config.getBoolean("biomes."+biomeName+".snow");
             List<BiomeDefinition.BlockData> blocks = new ArrayList<>();
             if (config.get("biomes." + biomeName + ".blocks") != null) {
                 for (String materialName : config.getConfigurationSection("biomes." + biomeName + ".blocks").getKeys(false)) {
@@ -113,13 +114,14 @@ public class BitmapGeneratorConfig {
                             biomeName,
                             r, g, b,
                             biome,
+                            snowfall,
                             blocks,
                             floraCount, floraTypes,
                             treeCount, treeTypes,
                             veinCount, veinTypes,
                             schematicCount, schematics);
             biomes.add(biomeDefinition);
-            plugin.getLogger().info("Loaded Biome: " + biomeDefinition.toString());
+            plugin.getLogger().info("Loaded Biome: " + biomeDefinition.getName());
         }
         return biomes;
     }
