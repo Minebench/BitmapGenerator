@@ -35,12 +35,10 @@ public class WorldGenerator extends ChunkGenerator {
 
     private BitmapGenerator plugin;
     private BufferedImage biomeMap;
-    private BufferedImage heightMap;
 
-    public WorldGenerator(BitmapGenerator plugin, BufferedImage blockMap, BufferedImage heightMap) {
+    public WorldGenerator(BitmapGenerator plugin, BufferedImage blockMap) {
         this.plugin = plugin;
         this.biomeMap = blockMap;
-        this.heightMap = heightMap;
     }
 
     @Override

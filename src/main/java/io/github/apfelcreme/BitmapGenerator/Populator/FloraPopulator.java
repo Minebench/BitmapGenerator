@@ -10,7 +10,6 @@ import org.bukkit.generator.BlockPopulator;
 import org.bukkit.material.MaterialData;
 
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -51,7 +50,13 @@ public class FloraPopulator extends BlockPopulator {
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
             for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
-                for (int i = 0; i < biomeDefinition.getFloraCount(); i++) {
+                double floraCount;
+                if (biomeDefinition.getFloraChance() < 1) {
+                    floraCount = Math.random() <= biomeDefinition.getFloraChance() ? 1 : 0;
+                } else {
+                    floraCount = (int) biomeDefinition.getFloraChance();
+                }
+                for (int i = 0; i < floraCount; i++) {
                     int floraX = (chunk.getX() << 4) + random.nextInt(16);
                     int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
                     int floraY = world.getHighestBlockYAt(floraX, floraZ);

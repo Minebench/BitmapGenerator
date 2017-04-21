@@ -1,7 +1,6 @@
 package io.github.apfelcreme.BitmapGenerator;
 
 import org.bukkit.Chunk;
-import org.bukkit.block.Biome;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -42,71 +41,93 @@ public class BitmapGenerator extends JavaPlugin {
 
     public void onEnable() {
         this.bitmapGeneratorConfig = new BitmapGeneratorConfig(this);
+        loadBiomes(this);
+    }
 
+    /**
+     * loads all defined biomes and checks if the image contains invalid colors, to which no biome definition
+     * is available. In this case the plugin is disabled
+     *
+     * @param plugin the plugin instance
+     */
+    private void loadBiomes(final BitmapGenerator plugin) {
+
+        getLogger().info("Checking Image-Files...");
         try {
             File biomeMapFile = new File(getDataFolder() + "/" + bitmapGeneratorConfig.getBiomeMapName());
             if (biomeMapFile.exists()) {
                 biomeMap = ImageIO.read(biomeMapFile);
-            }
 
-            File heightMapFile = new File(getDataFolder() + "/" + bitmapGeneratorConfig.getHeightMapName());
-            if (heightMapFile.exists()) {
-                heightMap = ImageIO.read(heightMapFile);
+                File heightMapFile = new File(getDataFolder() + "/" + bitmapGeneratorConfig.getHeightMapName());
+                if (heightMapFile.exists()) {
+                    heightMap = ImageIO.read(heightMapFile);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         if (biomeMap == null) {
             getLogger().severe("BiomeMap was not found!");
-            getServer().getPluginManager().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(plugin);
         }
         if (heightMap == null) {
             getLogger().severe("HeightMap was not found!");
-            getServer().getPluginManager().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(plugin);
         }
         if (biomeMap.getWidth() != heightMap.getWidth()) {
             getLogger().severe("BiomeMap width does not equal HeightMap width!");
-            getServer().getPluginManager().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(plugin);
         }
         if (biomeMap.getHeight() != heightMap.getHeight()) {
             getLogger().severe("BiomeMap height does not equal HeightMap height!");
-            getServer().getPluginManager().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(plugin);
         }
-        getLogger().info("Loading biomes...");
-        biomes = bitmapGeneratorConfig.loadBiomes();
-        getLogger().info("Checking biome validity...");
-        checkTerrainValidity();
-    }
 
-    private void checkTerrainValidity() {
-        Set<Integer> rgbValues = new HashSet<>();
-        for (int x = 0; x < biomeMap.getWidth(); x++) {
-            for (int y = 0; y < biomeMap.getHeight(); y++) {
-                rgbValues.add(biomeMap.getRGB(x, y));
-            }
-        }
-        getLogger().info("Biomes found: ");
-        for (Integer rgbValue : rgbValues) {
-            Color color = new Color(rgbValue);
-            BiomeDefinition foundBiome = null;
-            for (BiomeDefinition biomeDefinition : biomes) {
-                if (biomeDefinition.getR() == color.getRed()
-                        && biomeDefinition.getG() == color.getGreen()
-                        && biomeDefinition.getB() == color.getBlue()) {
-                    foundBiome = biomeDefinition;
+        getServer().getScheduler().runTaskAsynchronously(this, new Runnable() {
+            @Override
+            public void run() {
+                getLogger().info("Loading biomes...");
+                biomes = bitmapGeneratorConfig.loadBiomes();
+
+                getLogger().info("Checking biome validity...");
+                Set<Integer> rgbValues = new HashSet<>();
+                for (int x = 0; x < biomeMap.getWidth(); x++) {
+                    for (int y = 0; y < biomeMap.getHeight(); y++) {
+                        rgbValues.add(biomeMap.getRGB(x, y));
+                    }
+                }
+                getLogger().info("Biomes found: ");
+                boolean valid = true;
+                for (Integer rgbValue : rgbValues) {
+                    Color color = new Color(rgbValue);
+                    BiomeDefinition foundBiome = null;
+                    for (BiomeDefinition biomeDefinition : biomes) {
+                        if (biomeDefinition.getR() == color.getRed()
+                                && biomeDefinition.getG() == color.getGreen()
+                                && biomeDefinition.getB() == color.getBlue()) {
+                            foundBiome = biomeDefinition;
+                        }
+                    }
+                    if (foundBiome != null) {
+                        getLogger().info(" [" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "] -> " + foundBiome.getName());
+                    } else {
+                        getLogger().info(" [" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "] could not be assigned to any biome!");
+                        valid = false;
+                    }
+                }
+                if (!valid) {
+                    getLogger().info("Invalid colors were found in " + bitmapGeneratorConfig.getBiomeMapName() + "! BitmapGenerator will be disabled!");
+                    getServer().getPluginManager().disablePlugin(plugin);
+                } else {
+                    getLogger().info("All colors found could be assigned to a biome!");
                 }
             }
-            if (foundBiome != null) {
-                getLogger().info(" [" + color.getRed()+","+color.getGreen()+","+color.getBlue() + "] -> " + foundBiome.getName());
-            } else {
-                getLogger().info(" [" + color.getRed()+","+color.getGreen()+","+color.getBlue() + "] could not be assigned to any biome!");
-            }
-        }
+        });
     }
 
     @Override
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        return new WorldGenerator(this, biomeMap, heightMap);
+        return new WorldGenerator(this, biomeMap);
     }
 
     /**
@@ -180,42 +201,5 @@ public class BitmapGenerator extends JavaPlugin {
             }
         }
         return biomeDefinitions;
-    }
-
-    /**
-     * joins a number of strings and places a seperator between them
-     * -> taken from StringUtils to reduce the number of dependencies
-     *
-     * @param list      the array of strings
-     * @param separator the seperator
-     * @return a joined string
-     */
-    public static String join(List<?> list, String separator) {
-        if (list == null) {
-            return null;
-        } else {
-            if (separator == null) {
-                separator = "";
-            }
-
-            int noOfItems = list.size();
-            if (noOfItems <= 0) {
-                return "";
-            } else {
-                StringBuilder buf = new StringBuilder(noOfItems * 16);
-
-                for (int i = 0; i < list.size(); ++i) {
-                    if (i > 0) {
-                        buf.append(separator);
-                    }
-
-                    if (list.get(i) != null) {
-                        buf.append(list.get(i));
-                    }
-                }
-
-                return buf.toString();
-            }
-        }
     }
 }

@@ -1,0 +1,131 @@
+r: 255
+g: 0
+b: 0
+blocks:
+  DIRT:
+    block: 3
+    data: 0
+    chance: 0.35
+  COARSEDIRT:
+    block: 3
+    data: 1
+    chance: 0.35
+  PODSOL:
+    block: 3
+    data: 2
+    chance: 0.1
+  GRASS:
+    block: 2
+    data: 0
+    chance: 0.1
+  GRAVEL:
+    block: 13
+    data: 0
+    chance: 0.1
+biome: PLAINS
+snow: false
+floraChance: 60.0
+floraTypes:
+  grass:
+    block: 31
+    data: 1
+    chance: 0.5
+  farn:
+    block: 31
+    data: 2
+    chance: 0.3
+  blue:
+    block: 38
+    data: 1
+    chance: 0.1
+  violett:
+    block: 38
+    data: 2
+    chance: 0.1
+treeChance: 1.0
+treeTypes:
+  oak:
+    type: TREE
+    chance: 0.9
+  largeoak:
+    type: BIG_TREE
+    chance: 0.1
+  birch:
+    type: BIRCH
+    chance: 0.1
+schematicChance: 0.0
+schematics: null
+veinChance: 15.0
+veinTypes:
+  diamond:
+    block: 56
+    data: 0
+    chance: 0.01
+    length: 2
+    stroke: 1
+  gold:
+    block: 14
+    data: 0
+    chance: 0.03
+    length: 2
+    stroke: 2
+  iron:
+    block: 15
+    data: 0
+    chance: 0.1
+    length: 3
+    stroke: 2
+  coal:
+    block: 16
+    data: 0
+    chance: 0.15
+    length: 3
+    stroke: 3
+  emerald:
+    block: 129
+    data: 0
+    chance: 0.01
+    length: 1
+    stroke: 0
+  lapis:
+    block: 21
+    data: 0
+    chance: 0.03
+    length: 2
+    stroke: 2
+  redstone:
+    block: 73
+    data: 0
+    chance: 0.07
+    length: 3
+    stroke: 2
+  granite:
+    block: 1
+    data: 1
+    chance: 0.1
+    length: 3
+    stroke: 2
+  diorite:
+    block: 1
+    data: 3
+    chance: 0.1
+    length: 3
+    stroke: 2
+  andesite:
+    block: 1
+    data: 5
+    chance: 0.1
+    length: 3
+    stroke: 2
+  dirt:
+    block: 3
+    data: 0
+    chance: 0.3
+    length: 5
+    stroke: 4
+  air:
+    block: 0
+    data: 0
+    chance: 0.5
+    length: 12
+    stroke: 5

@@ -48,7 +48,13 @@ public class TreePopulator extends BlockPopulator {
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
             for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
-                for (int i = 0; i < biomeDefinition.getTreeCount(); i++) {
+                double treeCount;
+                if (biomeDefinition.getTreeChance() < 1) {
+                    treeCount = Math.random() <= biomeDefinition.getTreeChance() ? 1 : 0;
+                } else {
+                    treeCount = (int) biomeDefinition.getTreeChance();
+                }
+                for (int i = 0; i < treeCount; i++) {
                     int treeX = (chunk.getX() << 4) + random.nextInt(16);
                     int treeZ = (chunk.getZ() << 4) + random.nextInt(16);
                     int treeY = world.getHighestBlockYAt(treeX, treeZ);

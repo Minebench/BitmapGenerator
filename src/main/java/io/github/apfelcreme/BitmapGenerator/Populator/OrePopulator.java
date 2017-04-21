@@ -50,7 +50,13 @@ public class OrePopulator extends BlockPopulator {
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
             for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
-                for (int i = 0; i < biomeDefinition.getVeinCount(); i++) {
+                double veinCount;
+                if (biomeDefinition.getVeinChance() < 1) {
+                    veinCount = Math.random() <= biomeDefinition.getVeinChance() ? 1 : 0;
+                } else {
+                    veinCount = (int) biomeDefinition.getVeinChance();
+                }
+                for (int i = 0; i < veinCount; i++) {
                     BiomeDefinition.OreVein vein = biomeDefinition.nextVein();
                     int startX = random.nextInt(10);
                     int startY = 5 + random.nextInt(40);

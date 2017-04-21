@@ -48,14 +48,14 @@ public class SnowPopulator extends BlockPopulator {
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
             for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
-                for (int x = 0; x < 16; x++) {
-                    for (int z = 0; z < 16; z++) {
-                        int snowX = (chunk.getX() << 4) + x;
-                        int snowZ = (chunk.getZ() << 4) + z;
-                        int snowY = world.getHighestBlockYAt(snowX, snowZ);
-                        if (plugin.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
-                            if (biomeDefinition.isSnowfall()) {
-                                world.getBlockAt(snowX, snowY, snowZ).setTypeIdAndData(Material.SNOW.getId(), (byte) (1 + random.nextInt(7)), true);
+                if (biomeDefinition.isSnowfall()) {
+                    for (int x = 0; x < 16; x++) {
+                        for (int z = 0; z < 16; z++) {
+                            int snowX = (chunk.getX() << 4) + x;
+                            int snowZ = (chunk.getZ() << 4) + z;
+                            int snowY = world.getHighestBlockYAt(snowX, snowZ);
+                            if (plugin.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
+                                world.getBlockAt(snowX, snowY, snowZ).setTypeIdAndData(Material.SNOW.getId(), (byte) (1 + random.nextInt(4)), true);
                             }
                         }
                     }

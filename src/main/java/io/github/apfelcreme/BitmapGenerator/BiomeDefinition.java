@@ -36,18 +36,18 @@ public class BiomeDefinition {
     private Biome biome;
     private boolean snowfall;
     private List<BlockData> blocks;
-    private int floraCount;
+    private double floraChance;
     private List<BlockData> floraTypes;
-    private int treeCount;
+    private double treeChance;
     private List<TreeData> treeTypes;
-    private int veinCount;
+    private double veinChance;
     private List<OreVein> veinTypes;
-    private int schematicCount;
+    private double schematicChance;
     private List<Schematic> schematics;
 
 
-    public BiomeDefinition(String name, int r, int g, int b, Biome biome, boolean snowfall, List<BlockData> blocks, int floraCount, List<BlockData> floraTypes, int treeCount,
-                           List<TreeData> treeTypes, int veinCount, List<OreVein> veinTypes, int schematicCount, List<Schematic> schematics) {
+    public BiomeDefinition(String name, int r, int g, int b, Biome biome, boolean snowfall, List<BlockData> blocks, int floraChance, List<BlockData> floraTypes, int treeChance,
+                           List<TreeData> treeTypes, int veinChance, List<OreVein> veinTypes, int schematicChance, List<Schematic> schematics) {
         this.name = name;
         this.r = r;
         this.g = g;
@@ -55,13 +55,13 @@ public class BiomeDefinition {
         this.biome = biome;
         this.snowfall = snowfall;
         this.blocks = blocks;
-        this.floraCount = floraCount;
+        this.floraChance = floraChance;
         this.floraTypes = floraTypes;
-        this.treeCount = treeCount;
+        this.treeChance = treeChance;
         this.treeTypes = treeTypes;
-        this.veinCount = veinCount;
+        this.veinChance = veinChance;
         this.veinTypes = veinTypes;
-        this.schematicCount = schematicCount;
+        this.schematicChance = schematicChance;
         this.schematics = schematics;
     }
 
@@ -125,8 +125,8 @@ public class BiomeDefinition {
      *
      * @return the amount of flowers/grass pasted per chunk
      */
-    public int getFloraCount() {
-        return floraCount;
+    public double getFloraChance() {
+        return floraChance;
     }
 
     /**
@@ -134,8 +134,8 @@ public class BiomeDefinition {
      *
      * @return the amount of schematics pasted per chunk
      */
-    public int getSchematicCount() {
-        return schematicCount;
+    public double getSchematicChance() {
+        return schematicChance;
     }
 
     /**
@@ -143,8 +143,8 @@ public class BiomeDefinition {
      *
      * @return the amount of trees pasted per chunk
      */
-    public int getTreeCount() {
-        return treeCount;
+    public double getTreeChance() {
+        return treeChance;
     }
 
 
@@ -153,8 +153,26 @@ public class BiomeDefinition {
      *
      * @return the amount of veins generated per chunk
      */
-    public int getVeinCount() {
-        return veinCount;
+    public double getVeinChance() {
+        return veinChance;
+    }
+
+    /**
+     * checks if a given block ore is one of the ground blocks defined in the config
+     *
+     * @param block a block found (e.g. when populating flora)
+     * @return true, if the block found is one of the defined blocks,
+     * false if not (random block when populating is for example leaves from a generated tree. you dont want to put grass on that)
+     */
+    public boolean isGroundBlock(Block block) {
+        boolean isGround = false;
+        for (BlockData blockData : blocks) {
+            if (blockData.materialData.getItemType() == block.getType()
+                    && blockData.materialData.getData() == block.getData()) {
+                isGround = true;
+            }
+        }
+        return isGround;
     }
 
     /**
@@ -254,7 +272,9 @@ public class BiomeDefinition {
         while (sum < index) {
             sum = sum + (int) (schematics.get(i++).chance * 100);
         }
-        return schematics.get(Math.max(0, i - 1));
+        Schematic schematic = schematics.get(Math.max(0, i - 1));
+        schematic.getClipboard().rotate2D(random.nextInt(4) * 90);
+        return schematic;
     }
 
     @Override
@@ -265,46 +285,6 @@ public class BiomeDefinition {
         BiomeDefinition that = (BiomeDefinition) o;
 
         return !(name != null ? !name.equals(that.name) : that.name != null);
-    }
-
-    @Override
-    public String toString() {
-        return name + "| Red:" + r +
-                ", Green:" + g +
-                ", Blue:" + b +
-                ", Blocks:[" +
-                BitmapGenerator.join(blocks, ",") +
-                "], FloraCount:" + floraCount +
-                ", Flora:[" +
-                BitmapGenerator.join(floraTypes, ",") +
-                "], TreeCount:" + treeCount +
-                ", TreeTypes:[" +
-                BitmapGenerator.join(treeTypes, ",") +
-                "], VeinCount:" + veinCount +
-                ", VeinTypes:[" +
-                BitmapGenerator.join(veinTypes, ",") +
-                "], SchematicCount:" + schematicCount +
-                ", Schematics:[" +
-                BitmapGenerator.join(schematics, ",") +
-                "]";
-    }
-
-    /**
-     * checks if a given block ore is one of the ground blocks defined in the config
-     *
-     * @param block a block found (e.g. when populating flora)
-     * @return true, if the block found is one of the defined blocks,
-     * false if not (random block when populating is for example leaves from a generated tree. you dont want to put grass on that)
-     */
-    public boolean isGroundBlock(Block block) {
-        boolean isGround = false;
-        for (BlockData blockData : blocks) {
-            if (blockData.materialData.getItemType() == block.getType()
-                    && blockData.materialData.getData() == block.getData()) {
-                isGround = true;
-            }
-        }
-        return isGround;
     }
 
     /**
@@ -387,16 +367,22 @@ public class BiomeDefinition {
     public static class Schematic {
         private String name;
         private CuboidClipboard clipboard;
+        private int yOffset;
         private double chance;
 
-        public Schematic(String name, CuboidClipboard clipboard, double chance) {
+        public Schematic(String name, CuboidClipboard clipboard, int yOffset, double chance) {
             this.name = name;
             this.clipboard = clipboard;
+            this.yOffset = yOffset;
             this.chance = chance;
         }
 
         public CuboidClipboard getClipboard() {
             return clipboard;
+        }
+
+        public int getYOffset() {
+            return yOffset;
         }
 
         @Override
