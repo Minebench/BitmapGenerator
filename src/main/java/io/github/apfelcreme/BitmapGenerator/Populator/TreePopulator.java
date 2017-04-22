@@ -1,7 +1,7 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
-import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
+import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -31,12 +31,12 @@ import java.util.Random;
  */
 public class TreePopulator extends BlockPopulator {
 
-    private final BitmapGenerator plugin;
     private final BufferedImage biomeMap;
+    private WorldConfiguration worldConfiguration;
 
-    public TreePopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
-        this.plugin = plugin;
-        this.biomeMap = biomeMap;
+    public TreePopulator(WorldConfiguration worldConfiguration) {
+        this.worldConfiguration = worldConfiguration;
+        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class TreePopulator extends BlockPopulator {
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
+            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
                 double treeCount;
                 if (biomeDefinition.getTreeChance() < 1) {
                     treeCount = Math.random() <= biomeDefinition.getTreeChance() ? 1 : 0;
@@ -59,7 +59,7 @@ public class TreePopulator extends BlockPopulator {
                     int treeZ = (chunk.getZ() << 4) + random.nextInt(16);
                     int treeY = world.getHighestBlockYAt(treeX, treeZ);
                     if (biomeDefinition.isGroundBlock(world.getBlockAt(treeX, treeY - 1, treeZ))) {
-                        if (plugin.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
+                        if (worldConfiguration.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
                             BiomeDefinition.TreeData treeData = biomeDefinition.nextTree();
                             if (treeData != null) {
                                 CraftWorld craftWorld = ((CraftWorld) world).getHandle().getWorld();

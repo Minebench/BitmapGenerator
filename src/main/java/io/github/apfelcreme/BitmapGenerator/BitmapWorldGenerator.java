@@ -9,7 +9,6 @@ import org.bukkit.material.MaterialData;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -31,14 +30,14 @@ import java.util.Random;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class WorldGenerator extends ChunkGenerator {
+public class BitmapWorldGenerator extends ChunkGenerator {
 
-    private BitmapGenerator plugin;
+    private WorldConfiguration worldConfiguration;
     private BufferedImage biomeMap;
 
-    public WorldGenerator(BitmapGenerator plugin, BufferedImage blockMap) {
-        this.plugin = plugin;
-        this.biomeMap = blockMap;
+    public BitmapWorldGenerator(WorldConfiguration worldConfiguration) {
+        this.worldConfiguration = worldConfiguration;
+        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
@@ -56,12 +55,12 @@ public class WorldGenerator extends ChunkGenerator {
                 for (int cZ = 0; cZ < 16; cZ++) {
                     int imageCoordX = x * 16 + cX;
                     int imageCoordZ = z * 16 + cZ;
-                    BiomeDefinition biomeDefinition = plugin.getBiomeDefinition(imageCoordX, imageCoordZ);
+                    BiomeDefinition biomeDefinition = worldConfiguration.getBiomeDefinition(imageCoordX, imageCoordZ);
                     if (biomeDefinition != null) {
                         biome.setBiome(cX, cZ, biomeDefinition.getBiome());
                         data.setBlock(cX, 0, cZ, Material.BEDROCK);
                         for (int cY = 1; cY < 256; cY++) {
-                            int heighestBlock = plugin.getHeight(imageCoordX, imageCoordZ);
+                            int heighestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
 
                             // fill with the destined block
                             if (cY <= heighestBlock && cY > (heighestBlock - surfaceLayerHeight)) {
@@ -76,7 +75,7 @@ public class WorldGenerator extends ChunkGenerator {
 
                             // Fill everything under the waterHeight-level with water
                             if ((data.getType(cX, cY, cZ) == null || data.getType(cX, cY, cZ) == Material.AIR)
-                                    && cY <= plugin.getBitmapGeneratorConfig().getWaterHeight()) {
+                                    && cY <= worldConfiguration.getWaterHeight()) {
                                 data.setBlock(cX, cY, cZ, new MaterialData(Material.WATER));
                             }
                         }
@@ -100,11 +99,11 @@ public class WorldGenerator extends ChunkGenerator {
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
         return Arrays.asList(
-                new TreePopulator(plugin, biomeMap),
-                new SnowPopulator(plugin, biomeMap),
-                new SchematicPopulator(plugin, biomeMap),
-                new FloraPopulator(plugin, biomeMap),
-                new OrePopulator(plugin, biomeMap)
+                new TreePopulator(worldConfiguration),
+                new SnowPopulator(worldConfiguration),
+                new SchematicPopulator(worldConfiguration),
+                new FloraPopulator(worldConfiguration),
+                new OrePopulator(worldConfiguration)
         );
     }
 

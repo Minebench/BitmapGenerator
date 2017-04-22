@@ -1,5 +1,5 @@
 name: BitmapGenerator
 version: '${minecraft.plugin.version}'
-main: io.github.apfelcreme.BitmapGenerator.BitmapGenerator
+main: io.github.apfelcreme.BitmapGenerator.BitmapGeneratorPlugin
 author: Lord36
 depend: [WorldEdit]

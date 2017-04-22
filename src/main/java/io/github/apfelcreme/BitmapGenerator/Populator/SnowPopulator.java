@@ -1,7 +1,7 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
-import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
+import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -30,12 +30,12 @@ import java.util.Random;
  */
 public class SnowPopulator extends BlockPopulator {
 
-    private final BitmapGenerator plugin;
+    private WorldConfiguration worldConfiguration;
     private final BufferedImage biomeMap;
 
-    public SnowPopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
-        this.plugin = plugin;
-        this.biomeMap = biomeMap;
+    public SnowPopulator(WorldConfiguration worldConfiguration) {
+        this.worldConfiguration = worldConfiguration;
+        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
@@ -47,14 +47,14 @@ public class SnowPopulator extends BlockPopulator {
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
+            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
                 if (biomeDefinition.isSnowfall()) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
                             int snowX = (chunk.getX() << 4) + x;
                             int snowZ = (chunk.getZ() << 4) + z;
                             int snowY = world.getHighestBlockYAt(snowX, snowZ);
-                            if (plugin.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
+                            if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
                                 world.getBlockAt(snowX, snowY, snowZ).setTypeIdAndData(Material.SNOW.getId(), (byte) (1 + random.nextInt(4)), true);
                             }
                         }

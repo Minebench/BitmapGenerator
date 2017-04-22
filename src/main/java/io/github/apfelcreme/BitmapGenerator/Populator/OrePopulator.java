@@ -1,7 +1,7 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
-import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
+import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,12 +32,12 @@ import java.util.Random;
  */
 public class OrePopulator extends BlockPopulator {
 
-    private BitmapGenerator plugin;
     private final BufferedImage biomeMap;
+    private WorldConfiguration worldConfiguration;
 
-    public OrePopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
-        this.plugin = plugin;
-        this.biomeMap = biomeMap;
+    public OrePopulator(WorldConfiguration worldConfiguration) {
+        this.worldConfiguration = worldConfiguration;
+        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
 
@@ -49,7 +49,7 @@ public class OrePopulator extends BlockPopulator {
         int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
+            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
                 double veinCount;
                 if (biomeDefinition.getVeinChance() < 1) {
                     veinCount = Math.random() <= biomeDefinition.getVeinChance() ? 1 : 0;

@@ -2,15 +2,14 @@ package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import com.sk89q.worldedit.Vector;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
-import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
+import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.generator.BlockPopulator;
 
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.Random;
 
 /**
  * Copyright (C) 2017 Lord36 aka Apfelcreme
@@ -33,11 +32,11 @@ import java.util.*;
 public class SchematicPopulator extends BlockPopulator {
 
     private final BufferedImage biomeMap;
-    private BitmapGenerator plugin;
+    private WorldConfiguration worldConfiguration;
 
-    public SchematicPopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
-        this.plugin = plugin;
-        this.biomeMap = biomeMap;
+    public SchematicPopulator(WorldConfiguration worldConfiguration) {
+        this.worldConfiguration = worldConfiguration;
+        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
@@ -47,7 +46,7 @@ public class SchematicPopulator extends BlockPopulator {
         int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
+            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
                 double schematicCount;
                 if (biomeDefinition.getSchematicChance() < 1) {
                     schematicCount = Math.random() <= biomeDefinition.getSchematicChance() ? 1 : 0;
@@ -60,7 +59,7 @@ public class SchematicPopulator extends BlockPopulator {
                     int schematicZ = (chunk.getZ() << 4) + random.nextInt(16);
                     int schematicY = world.getHighestBlockYAt(schematicX, schematicZ);
 
-                    if (plugin.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
+                    if (worldConfiguration.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
                         if (biomeDefinition.isGroundBlock(world.getBlockAt(schematicX, schematicY - 1, schematicZ))) {
                             for (int x = 0; x < schematic.getClipboard().getWidth(); x++) {
                                 for (int y = 0; y < schematic.getClipboard().getHeight(); y++) {
@@ -69,7 +68,7 @@ public class SchematicPopulator extends BlockPopulator {
                                                 schematicX + x - (schematic.getClipboard().getWidth() / 2),
                                                 schematicY + y + schematic.getYOffset(),
                                                 schematicZ + z - (schematic.getClipboard().getLength() / 2));
-                                        if (block.getType() == Material.AIR) {
+                                        if (!schematic.getClipboard().getBlock(new Vector(x, y, z)).isAir()) {
                                             block.setTypeIdAndData(schematic.getClipboard().getBlock(new Vector(x, y, z)).getId(),
                                                     (byte) schematic.getClipboard().getBlock(new Vector(x, y, z)).getData(),
                                                     true);

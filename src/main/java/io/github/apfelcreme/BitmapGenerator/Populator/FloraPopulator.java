@@ -1,7 +1,7 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
-import io.github.apfelcreme.BitmapGenerator.BitmapGenerator;
+import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,13 +32,15 @@ import java.util.Random;
  */
 public class FloraPopulator extends BlockPopulator {
 
-    private final BitmapGenerator plugin;
     private final BufferedImage biomeMap;
+    private WorldConfiguration worldConfiguration;
 
-    public FloraPopulator(BitmapGenerator plugin, BufferedImage biomeMap) {
-        this.plugin = plugin;
-        this.biomeMap = biomeMap;
+    public FloraPopulator(WorldConfiguration worldConfiguration) {
+        this.worldConfiguration = worldConfiguration;
+        this.biomeMap = worldConfiguration.getBiomeMap();
     }
+
+
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
@@ -49,7 +51,7 @@ public class FloraPopulator extends BlockPopulator {
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
 
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : plugin.getDistinctChunkBiomes(chunk)) {
+            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
                 double floraCount;
                 if (biomeDefinition.getFloraChance() < 1) {
                     floraCount = Math.random() <= biomeDefinition.getFloraChance() ? 1 : 0;
@@ -60,7 +62,7 @@ public class FloraPopulator extends BlockPopulator {
                     int floraX = (chunk.getX() << 4) + random.nextInt(16);
                     int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
                     int floraY = world.getHighestBlockYAt(floraX, floraZ);
-                    if (plugin.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
+                    if (worldConfiguration.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
                         MaterialData floraData = biomeDefinition.nextFloraData();
                         if (floraData != null) {
                             if (biomeDefinition.isGroundBlock(world.getBlockAt(floraX, floraY - 1, floraZ))) {
