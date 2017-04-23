@@ -1,10 +1,12 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import org.bukkit.World;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,8 +45,8 @@ public class BitmapGeneratorPlugin extends JavaPlugin {
      */
     @Override
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        if (worldName.equals("test")) {
-            getLogger().info("Multiverse created a map named 'test' as it always does! Redirecting to a pseudo chunk generator!");
+        if (worldName.equals("test") || worldName.equals("world")) {
+            getLogger().info("Multiverse created a map named '"+worldName+"' as it always does! Redirecting to a pseudo chunk generator! Ignore this...");
             return new PseudoWorldGenerator();
         } else {
             WorldConfiguration worldConfiguration = worldConfigurations.get(worldName);
