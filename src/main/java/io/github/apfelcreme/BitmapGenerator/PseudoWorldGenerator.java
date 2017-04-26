@@ -25,12 +25,11 @@ import java.util.Random;
  */
 public class PseudoWorldGenerator extends ChunkGenerator {
 
-
     @Override
     public synchronized ChunkData generateChunkData(World world, Random random, int x, int z, BiomeGrid biome) {
-        // When Multiverse creates a world with a custom generator it creates a world named "test" before creating the actual map
-        // To catch this and not make the process redundant, the world name "test" is catched and the world-creation-process is handled
-        // by this chunk generator.
+        // Whenever Multiverse gets a list of generators, this will be called instead of the actual Bitmap-Generator
+        // to not create any useless files. (Apparently to get a list of generators and to check their viability,
+        // Multiverse tries to create a world with it)
         return createChunkData(world);
     }
 }

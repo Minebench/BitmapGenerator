@@ -101,9 +101,3 @@ veinTypes:
     chance: 0.1
     length: 3
     stroke: 2
-  air:
-    block: 0
-    data: 0
-    chance: 0.3
-    length: 10
-    stroke: 3

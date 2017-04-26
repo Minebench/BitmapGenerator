@@ -99,6 +99,7 @@ public class BitmapWorldGenerator extends ChunkGenerator {
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
         return Arrays.asList(
+                new CavePopulator(worldConfiguration),
                 new TreePopulator(worldConfiguration),
                 new SnowPopulator(worldConfiguration),
                 new SchematicPopulator(worldConfiguration),

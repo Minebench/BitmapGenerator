@@ -100,9 +100,3 @@ veinTypes:
     chance: 0.1
     length: 3
     stroke: 2
-  dirt:
-    block: 3
-    data: 0
-    chance: 0.3
-    length: 5
-    stroke: 4

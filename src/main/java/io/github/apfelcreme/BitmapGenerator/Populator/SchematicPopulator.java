@@ -61,13 +61,16 @@ public class SchematicPopulator extends BlockPopulator {
 
                     if (worldConfiguration.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
                         if (biomeDefinition.isGroundBlock(world.getBlockAt(schematicX, schematicY - 1, schematicZ))) {
-                            for (int x = 0; x < schematic.getClipboard().getWidth(); x++) {
-                                for (int y = 0; y < schematic.getClipboard().getHeight(); y++) {
-                                    for (int z = 0; z < schematic.getClipboard().getLength(); z++) {
+                            int schematicWidth = schematic.getClipboard().getWidth();
+                            int schematicHeight = schematic.getClipboard().getHeight();
+                            int schematicLength = schematic.getClipboard().getLength();
+                            for (int x = 0; x < schematicWidth; x++) {
+                                for (int y = 0; y < schematicHeight; y++) {
+                                    for (int z = 0; z < schematicLength; z++) {
                                         Block block = world.getBlockAt(
-                                                schematicX + x - (schematic.getClipboard().getWidth() / 2),
+                                                schematicX + x - (schematicWidth / 2),
                                                 schematicY + y + schematic.getYOffset(),
-                                                schematicZ + z - (schematic.getClipboard().getLength() / 2));
+                                                schematicZ + z - (schematicLength / 2));
                                         if (!schematic.getClipboard().getBlock(new Vector(x, y, z)).isAir()) {
                                             block.setTypeIdAndData(schematic.getClipboard().getBlock(new Vector(x, y, z)).getId(),
                                                     (byte) schematic.getClipboard().getBlock(new Vector(x, y, z)).getData(),

@@ -52,16 +52,24 @@ public class WorldConfiguration {
     private BufferedImage biomeMap = null;
     private BufferedImage heightMap = null;
 
+    private long caveSeed;
+    private long heightSeed;
+    private double caveRadius;
+    private double noise;
+
+    private Perlin noiseHeight;
+    private Perlin noiseMap;
 
     /**
      * creates a new instance if all is fine, or null if an error occurs during the loading process
      *
      * @param plugin    the plugin instance
      * @param worldName the world name
+     * @param caveSeed  the world seed
      * @return a new instance or null
      */
-    public static WorldConfiguration newInstance(BitmapGeneratorPlugin plugin, String worldName) {
-        WorldConfiguration worldConfiguration = new WorldConfiguration(plugin, worldName);
+    public static WorldConfiguration newInstance(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed) {
+        WorldConfiguration worldConfiguration = new WorldConfiguration(plugin, worldName, caveSeed, heightSeed);
         boolean biomesCorrectlyLoaded = worldConfiguration.loadBiomes();
         return biomesCorrectlyLoaded ? worldConfiguration : null;
     }
@@ -69,10 +77,12 @@ public class WorldConfiguration {
     /**
      * constructor
      *
-     * @param plugin    the plugin instance
-     * @param worldName the world name
+     * @param plugin     the plugin instance
+     * @param worldName  the world name
+     * @param caveSeed   the world seed do determine if a block should be set to air to generate a cave
+     * @param heightSeed the seed to determine the cave height at a location
      */
-    private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName) {
+    private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed) {
         this.plugin = plugin;
         this.worldName = worldName;
         this.prefix = "[" + worldName + "] ";
@@ -82,12 +92,32 @@ public class WorldConfiguration {
             //extract all resources if they dont exist yet (world.yml and all biome.yml-files)
             plugin.saveResource("world.yml", worldName);
             worldConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+
+            // Load the world seeds and initiate the Perlin-Noise for cave generation
+            if (worldConfig.get("caveSeed") == null) {
+                worldConfig.set("caveSeed", caveSeed);
+                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+            }
+            if (worldConfig.get("heightSeed") == null) {
+                worldConfig.set("heightSeed", heightSeed);
+                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+            }
+            this.caveSeed = worldConfig.getLong("caveSeed");
+            this.heightSeed = worldConfig.getLong("heightSeed");
+            this.caveRadius = worldConfig.getDouble("caveRadius", 3.9d);
+            this.noise = worldConfig.getDouble("noise", 24);
+            this.noiseMap = new Perlin(caveSeed);
+            this.noiseHeight = new Perlin(heightSeed);
+
+            // create some directories
             if (!new File(plugin.getDataFolder() + "/" + worldName + "/schematics").exists()) {
                 new File(plugin.getDataFolder() + "/" + worldName + "/schematics").mkdirs();
             }
             if (!new File(plugin.getDataFolder() + "/" + worldName + "/biomes").exists()) {
                 new File(plugin.getDataFolder() + "/" + worldName + "/biomes").mkdirs();
             }
+
+            // extract the biome files
             for (String biomeFileName : getBiomeFiles()) {
                 plugin.saveResource(biomeFileName, worldName);
             }
@@ -171,7 +201,7 @@ public class WorldConfiguration {
         // Load biomes from the world.yml config file
         plugin.getLogger().info(prefix + "Loading biomes...");
         biomes = getBiomeDefinitions();
-        plugin.getLogger().info(prefix + biomes.size()+ " biomes were loaded!");
+        plugin.getLogger().info(prefix + biomes.size() + " biomes were loaded!");
 
         // Find all colors used in the biome map file
         plugin.getLogger().info(prefix + "Checking biome validity...");
@@ -202,6 +232,7 @@ public class WorldConfiguration {
                 valid = false;
             }
         }
+
         if (!valid) {
             plugin.getLogger().info(prefix + "Invalid colors were found in " + getBiomeMapName() + "!");
             return false;
@@ -393,7 +424,7 @@ public class WorldConfiguration {
     }
 
     /**
-     * returns the height at location
+     * returns the height at a location
      *
      * @param blockX the x coordinate of the block
      * @param blockZ the z coordinate of the block
@@ -408,6 +439,54 @@ public class WorldConfiguration {
         int imageZ = blockZ + offsetZ;
 
         return (heightMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
+    }
+
+    /**
+     * returns the y coordinate of a cave at a certain coordinate
+     * @param blockX the x coordinate
+     * @param blockZ the z coordinate
+     * @return the y coordinate of a cave at a location
+     */
+    public int getCaveHeight(int blockX, int blockZ) {
+        int offsetX = ((biomeMap.getWidth() / 2));
+        int offsetZ = ((biomeMap.getHeight() / 2));
+
+        int imageX = blockX + offsetX;
+        int imageZ = blockZ + offsetZ;
+
+        double val = noiseHeight.noise(imageX / noise, imageZ / noise, 0);
+
+        return (0x010101 * (int) ((val + 1) * 40)) & 0x000000FF;
+    }
+
+    /**
+     * checks if a cave should be generated at the given coordinate
+     * @param blockX the x coordinate
+     * @param blockZ the z coordinate
+     * @return true or false
+     */
+    public boolean isCave(int blockX, int blockZ) {
+        int offsetX = ((biomeMap.getWidth() / 2));
+        int offsetZ = ((biomeMap.getHeight() / 2));
+
+        int imageX = blockX + offsetX;
+        int imageZ = blockZ + offsetZ;
+
+        double val = noiseMap.noise(imageX / noise, 60 / noise, imageZ / noise);
+
+        return (val > 0 && val < 0.1);
+    }
+
+    /**
+     * returns the noise value (near 0 -> very noisy, ~30 -> very calm)
+     * @return the noise value
+     */
+    public double getNoise() {
+        return noise;
+    }
+
+    public double getCaveRadius() {
+        return caveRadius;
     }
 
     /**
@@ -426,7 +505,7 @@ public class WorldConfiguration {
                     biomeDefinitions.add(biomeDefinition);
                 }
             }
-        }
+    }
         return biomeDefinitions;
     }
 }

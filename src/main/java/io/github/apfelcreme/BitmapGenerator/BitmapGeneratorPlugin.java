@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Copyright (C) 2017 Lord36 aka Apfelcreme
@@ -36,6 +37,10 @@ public class BitmapGeneratorPlugin extends JavaPlugin {
         worldConfigurations = new HashMap<>();
     }
 
+    public void onDisable() {
+        worldConfigurations.clear();
+    }
+
     /**
      * loads the correct World Configuration for the given world
      *
@@ -46,13 +51,16 @@ public class BitmapGeneratorPlugin extends JavaPlugin {
     @Override
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
         if (worldName.equals("test") || worldName.equals("world")) {
-            getLogger().info("Multiverse created a map named '"+worldName+"' as it always does! Redirecting to a pseudo chunk generator! Ignore this...");
+            getLogger().info("Multiverse created a map named '" + worldName + "' as it always does! Redirecting to a pseudo chunk generator! Ignore this...");
             return new PseudoWorldGenerator();
         } else {
             WorldConfiguration worldConfiguration = worldConfigurations.get(worldName);
             if (worldConfiguration == null) {
-                worldConfiguration = WorldConfiguration.newInstance(this, worldName);
+
+                // Load the configuration from file
+                worldConfiguration = WorldConfiguration.newInstance(this, worldName, new Random().nextLong(), new Random().nextLong());
                 if (worldConfiguration != null) {
+                    // Loaded successfully!
                     worldConfigurations.put(worldName, worldConfiguration);
                 } else {
                     getLogger().severe("Something is missing! Ignore the MultiVerse-Error, we failed on purpose to prevent a corrupted world from being generated!");
