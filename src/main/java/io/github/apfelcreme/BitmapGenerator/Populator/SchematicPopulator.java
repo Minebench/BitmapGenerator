@@ -1,8 +1,11 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
+import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -57,7 +60,7 @@ public class SchematicPopulator extends BlockPopulator {
                     BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
                     int schematicX = (chunk.getX() << 4) + random.nextInt(16);
                     int schematicZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int schematicY = world.getHighestBlockYAt(schematicX, schematicZ);
+                    int schematicY = Util.getHighestBlock(world, schematicX, schematicZ) + 1;
 
                     if (worldConfiguration.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
                         if (biomeDefinition.isGroundBlock(world.getBlockAt(schematicX, schematicY - 1, schematicZ))) {
@@ -67,14 +70,20 @@ public class SchematicPopulator extends BlockPopulator {
                             for (int x = 0; x < schematicWidth; x++) {
                                 for (int y = 0; y < schematicHeight; y++) {
                                     for (int z = 0; z < schematicLength; z++) {
-                                        Block block = world.getBlockAt(
-                                                schematicX + x - (schematicWidth / 2),
-                                                schematicY + y + schematic.getYOffset(),
-                                                schematicZ + z - (schematicLength / 2));
-                                        if (!schematic.getClipboard().getBlock(new Vector(x, y, z)).isAir()) {
-                                            block.setTypeIdAndData(schematic.getClipboard().getBlock(new Vector(x, y, z)).getId(),
-                                                    (byte) schematic.getClipboard().getBlock(new Vector(x, y, z)).getData(),
-                                                    true);
+                                        try {
+                                            Block block = world.getBlockAt(
+                                                    schematicX + x - (schematicWidth / 2),
+                                                    schematicY + y + schematic.getYOffset(),
+                                                    schematicZ + z - (schematicLength / 2));
+                                            BaseBlock b = schematic.getClipboard().getBlock(new Vector(x, y, z));
+                                            if (b != null && !b.isAir()) {
+                                                block.setTypeIdAndData(b.getId(), (byte) b.getData(), true);
+                                            }
+                                        } catch (ArrayIndexOutOfBoundsException e) {
+                                            Bukkit.getServer().getLogger().severe(
+                                                    "Error: too fast (?) at " + schematicX + "," + schematicY + "," + schematicZ);
+                                            e.printStackTrace();
+                                            // TODO: Happens sometimes for no apparent reason ?
                                         }
                                     }
                                 }

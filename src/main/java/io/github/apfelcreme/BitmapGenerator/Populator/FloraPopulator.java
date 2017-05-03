@@ -1,6 +1,7 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
+import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -61,7 +62,7 @@ public class FloraPopulator extends BlockPopulator {
                 for (int i = 0; i < floraCount; i++) {
                     int floraX = (chunk.getX() << 4) + random.nextInt(16);
                     int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int floraY = world.getHighestBlockYAt(floraX, floraZ);
+                    int floraY = Util.getHighestBlock(world, floraX, floraZ) + 1;
                     if (worldConfiguration.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
                         MaterialData floraData = biomeDefinition.nextFloraData();
                         if (floraData != null) {

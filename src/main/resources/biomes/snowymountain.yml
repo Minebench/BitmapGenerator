@@ -23,6 +23,7 @@ blocks:
     data: 1
     chance: 0.01
 biome: EXTREME_HILLS
+surfaceLayerHeight: 4
 snow: true
 floraChance: 10.0
 floraTypes:
@@ -38,7 +39,7 @@ treeChance: 0.0
 treeTypes: null
 schematicChance: 0.0
 schematics: null
-veinChance: 15.0
+veinChance: 11.0
 veinTypes:
   diamond:
     block: 56

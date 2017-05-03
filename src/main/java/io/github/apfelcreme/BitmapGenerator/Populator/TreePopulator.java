@@ -1,9 +1,11 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
+import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
 import org.bukkit.generator.BlockPopulator;
@@ -57,7 +59,7 @@ public class TreePopulator extends BlockPopulator {
                 for (int i = 0; i < treeCount; i++) {
                     int treeX = (chunk.getX() << 4) + random.nextInt(16);
                     int treeZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int treeY = world.getHighestBlockYAt(treeX, treeZ);
+                    int treeY = Util.getHighestBlock(world, treeX, treeZ) + 1;
                     if (biomeDefinition.isGroundBlock(world.getBlockAt(treeX, treeY - 1, treeZ))) {
                         if (worldConfiguration.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
                             BiomeDefinition.TreeData treeData = biomeDefinition.nextTree();

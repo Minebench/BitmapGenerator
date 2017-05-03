@@ -1,24 +1,12 @@
-r: 0
-g: 0
-b: 255
+r: 100
+g: 100
+b: 100
 blocks:
-  SAND:
-    block: 12
+  STONE:
+    block: 1
     data: 0
-    chance: 0.3
-  DIRT:
-    block: 3
-    data: 0
-    chance: 0.3
-  GRAVEL:
-    block: 13
-    data: 0
-    chance: 0.3
-  CLAY:
-    block: 82
-    data: 0
-    chance: 0.1
-biome: OCEAN
+    chance: 1.0
+biome: PLAINS
 surfaceLayerHeight: 4
 snow: false
 floraChance: 0.0
@@ -32,13 +20,13 @@ veinTypes:
   diamond:
     block: 56
     data: 0
-    chance: 0.02
+    chance: 0.01
     length: 2
     stroke: 1
   gold:
     block: 14
     data: 0
-    chance: 0.05
+    chance: 0.03
     length: 2
     stroke: 2
   iron:
@@ -53,27 +41,39 @@ veinTypes:
     chance: 0.15
     length: 3
     stroke: 3
+  emerald:
+    block: 129
+    data: 0
+    chance: 0.01
+    length: 1
+    stroke: 0
+  lapis:
+    block: 21
+    data: 0
+    chance: 0.03
+    length: 2
+    stroke: 2
   redstone:
     block: 73
     data: 0
-    chance: 0.04
+    chance: 0.07
     length: 3
     stroke: 2
   granite:
     block: 1
     data: 1
-    chance: 0.05
+    chance: 0.1
     length: 3
     stroke: 2
   diorite:
     block: 1
     data: 3
-    chance: 0.05
+    chance: 0.1
     length: 3
     stroke: 2
   andesite:
     block: 1
     data: 5
-    chance: 0.05
+    chance: 0.1
     length: 3
     stroke: 2

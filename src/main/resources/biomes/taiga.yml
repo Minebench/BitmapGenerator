@@ -26,9 +26,10 @@ blocks:
     block: 1
     data: 0
     chance: 0.1
-biome: TAIGA_COLD
-snow: true
-floraChance: 25.0
+biome: TAIGA
+surfaceLayerHeight: 4
+snow: false
+floraChance: 70.0
 floraTypes:
   grass:
     block: 31
@@ -51,7 +52,7 @@ treeTypes:
     chance: 0.1
 schematicChance: 0.0
 schematics: null
-veinChance: 12.0
+veinChance: 9.0
 veinTypes:
   diamond:
     block: 56

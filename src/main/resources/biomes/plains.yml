@@ -11,6 +11,7 @@ blocks:
     data: 1
     chance: 0.1
 biome: PLAINS
+surfaceLayerHeight: 4
 snow: false
 floraChance: 120.0
 floraTypes:
@@ -21,24 +22,24 @@ floraTypes:
   farn:
     block: 31
     data: 2
-    chance: 0.1
+    chance: 0.01
   yellow:
     block: 37
     data: 0
-    chance: 0.05
+    chance: 0.01
   red:
     block: 38
     data: 0
-    chance: 0.05
+    chance: 0.01
   white:
     block: 38
     data: 3
-    chance: 0.1
+    chance: 0.03
 treeChance: 0.0
 treeTypes: null
 schematicChance: 0.0
 schematics: null
-veinChance: 15.0
+veinChance: 11.0
 veinTypes:
   diamond:
     block: 56

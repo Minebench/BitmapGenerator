@@ -1,0 +1,147 @@
+r: 150
+g: 255
+b: 200
+blocks:
+  SAND:
+    block: 12
+    data: 0
+    chance: 1.0
+biome: BEACHES
+surfaceLayerHeight: 4
+snow: false
+floraChance: 0.0
+floraTypes: null
+treeChance: 0.0
+treeTypes: null
+schematicChance: 1.0
+schematics:
+  1:
+    fileName: '__palme1.schematic'
+    yOffset: -7
+    chance: 0.1
+  2:
+    fileName: '__palme2.schematic'
+    yOffset: 0
+    chance: 0.1
+  3:
+    fileName: '__palme3.schematic'
+    yOffset: -1
+    chance: 0.1
+  4:
+    fileName: '__palme4.schematic'
+    yOffset: -4
+    chance: 0.1
+  5:
+    fileName: '__palme5.schematic'
+    yOffset: -2
+    chance: 0.1
+  6:
+    fileName: '__palme6.schematic'
+    yOffset: -2
+    chance: 0.1
+  7:
+    fileName: '__palme7.schematic'
+    yOffset: -5
+    chance: 0.1
+  8:
+    fileName: '__palme8.schematic'
+    yOffset: -5
+    chance: 0.1
+  9:
+    fileName: '__palme9.schematic'
+    yOffset: 0
+    chance: 0.1
+  10:
+    fileName: '__palme10.schematic'
+    yOffset: 0
+    chance: 0.1
+  11:
+    fileName: '__palme11.schematic'
+    yOffset: -1
+    chance: 0.1
+  12:
+    fileName: '__palme12.schematic'
+    yOffset: 0
+    chance: 0.1
+  13:
+    fileName: '__palme13.schematic'
+    yOffset: 0
+    chance: 0.1
+  14:
+    fileName: '__palme14.schematic'
+    yOffset: 0
+    chance: 0.1
+  15:
+    fileName: '__palme15.schematic'
+    yOffset: 0
+    chance: 0.1
+  16:
+    fileName: '__palme16.schematic'
+    yOffset: 0
+    chance: 0.1
+  17:
+    fileName: '__palme17.schematic'
+    yOffset: 0
+    chance: 0.1
+veinChance: 11.0
+veinTypes:
+  diamond:
+    block: 56
+    data: 0
+    chance: 0.01
+    length: 2
+    stroke: 1
+  gold:
+    block: 14
+    data: 0
+    chance: 0.02
+    length: 2
+    stroke: 2
+  iron:
+    block: 15
+    data: 0
+    chance: 0.10
+    length: 3
+    stroke: 2
+  coal:
+    block: 16
+    data: 0
+    chance: 0.10
+    length: 3
+    stroke: 3
+  emerald:
+    block: 129
+    data: 0
+    chance: 0.01
+    length: 1
+    stroke: 0
+  lapis:
+    block: 21
+    data: 0
+    chance: 0.02
+    length: 2
+    stroke: 2
+  redstone:
+    block: 73
+    data: 0
+    chance: 0.04
+    length: 3
+    stroke: 2
+  granite:
+    block: 1
+    data: 1
+    chance: 0.1
+    length: 3
+    stroke: 2
+  diorite:
+    block: 1
+    data: 3
+    chance: 0.1
+    length: 3
+    stroke: 2
+  andesite:
+    block: 1
+    data: 5
+    chance: 0.1
+    length: 3
+    stroke: 2

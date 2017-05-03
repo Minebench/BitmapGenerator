@@ -52,25 +52,37 @@ public class WorldConfiguration {
     private BufferedImage biomeMap = null;
     private BufferedImage heightMap = null;
 
-    private long caveSeed;
-    private long heightSeed;
     private double caveRadius;
     private double noise;
+    private double snowNoise;
 
     private Perlin noiseHeight;
     private Perlin noiseMap;
+    private Perlin snowHeight;
 
     /**
      * creates a new instance if all is fine, or null if an error occurs during the loading process
      *
-     * @param plugin    the plugin instance
-     * @param worldName the world name
-     * @param caveSeed  the world seed
+     * @param plugin     the plugin instance
+     * @param worldName  the world name
+     * @param caveSeed   the cave seed
+     * @param heightSeed the cave height seed
+     * @param snowSeed   the snow height seed
      * @return a new instance or null
      */
-    public static WorldConfiguration newInstance(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed) {
-        WorldConfiguration worldConfiguration = new WorldConfiguration(plugin, worldName, caveSeed, heightSeed);
+    public static WorldConfiguration newInstance(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed, long snowSeed) {
+        // create a new WorldConfiguration object
+        //  - create folder structure & extract all files
+        WorldConfiguration worldConfiguration = new WorldConfiguration(plugin, worldName, caveSeed, heightSeed, snowSeed);
+
+        // Load the biomes
+        //  - load the image files (biomemap.png and heightmap.png)
+        //  - check their size
+        //  - load all biome definitions for this world from their .yml files in /BitmapGenerator/<world>/biomes/
+        //  - check all pixels on the map and try to assign the color to one of the loaded biome definitions
         boolean biomesCorrectlyLoaded = worldConfiguration.loadBiomes();
+
+        // Everything fine?
         return biomesCorrectlyLoaded ? worldConfiguration : null;
     }
 
@@ -82,15 +94,15 @@ public class WorldConfiguration {
      * @param caveSeed   the world seed do determine if a block should be set to air to generate a cave
      * @param heightSeed the seed to determine the cave height at a location
      */
-    private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed) {
+    private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed, long snowSeed) {
         this.plugin = plugin;
         this.worldName = worldName;
         this.prefix = "[" + worldName + "] ";
         this.biomeFiles = new ArrayList<>();
         try {
 
-            //extract all resources if they dont exist yet (world.yml and all biome.yml-files)
-            plugin.saveResource("world.yml", worldName);
+            //extract all resources if they dont exist yet (world.yml, all biome.yml-files and all schematics)
+            Util.saveResource(plugin, "world.yml", worldName);
             worldConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
 
             // Load the world seeds and initiate the Perlin-Noise for cave generation
@@ -102,12 +114,21 @@ public class WorldConfiguration {
                 worldConfig.set("heightSeed", heightSeed);
                 worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
             }
-            this.caveSeed = worldConfig.getLong("caveSeed");
-            this.heightSeed = worldConfig.getLong("heightSeed");
+            if (worldConfig.get("snowSeed") == null) {
+                worldConfig.set("snowSeed", snowSeed);
+                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+            }
+            caveSeed = worldConfig.getLong("caveSeed");
+            heightSeed = worldConfig.getLong("heightSeed");
+            snowSeed = worldConfig.getLong("snowSeed");
             this.caveRadius = worldConfig.getDouble("caveRadius", 3.9d);
-            this.noise = worldConfig.getDouble("noise", 24);
+            this.noise = worldConfig.getDouble("noise", 48);
+            this.snowNoise = worldConfig.getDouble("snowNoise", 24);
             this.noiseMap = new Perlin(caveSeed);
             this.noiseHeight = new Perlin(heightSeed);
+            this.snowHeight = new Perlin(snowSeed);
+
+            plugin.getLogger().info("Cave-Generation: " + caveSeed + ", Cave-Height: " + heightSeed + ", Snow-Height: " + snowSeed);
 
             // create some directories
             if (!new File(plugin.getDataFolder() + "/" + worldName + "/schematics").exists()) {
@@ -118,9 +139,16 @@ public class WorldConfiguration {
             }
 
             // extract the biome files
-            for (String biomeFileName : getBiomeFiles()) {
-                plugin.saveResource(biomeFileName, worldName);
+            for (String biomeFileName : getBiomeResourceFiles()) {
+                Util.saveResource(plugin, biomeFileName, worldName);
             }
+
+            // extract the schematic files
+            for (String schematicName : getSchematicFiles()) {
+                Util.saveResource(plugin, schematicName, worldName);
+            }
+
+
             File folder = new File(plugin.getDataFolder() + "/" + worldName + "/biomes");
             if (folder.exists() && folder.isDirectory()) {
                 Collections.addAll(biomeFiles, folder.listFiles());
@@ -131,13 +159,13 @@ public class WorldConfiguration {
     }
 
     /**
-     * returns a list of all biome yaml files in the resource folder
+     * returns a list of all resource files in the resource folder
      *
-     * @return a list of all biome yaml files in the resource folder
+     * @return a list of all resource files in the resource folder
      * @throws IOException
      */
-    private List<String> getBiomeFiles() throws IOException {
-        List<String> biomeFiles = new ArrayList<>();
+    private List<String> getBiomeResourceFiles() throws IOException {
+        List<String> biomeResourceFiles = new ArrayList<>();
         CodeSource src = WorldConfiguration.class.getProtectionDomain().getCodeSource();
         if (src != null) {
             URL jar = src.getLocation();
@@ -148,11 +176,36 @@ public class WorldConfiguration {
                     break;
                 String name = e.getName();
                 if (name.startsWith("biomes/") && !name.equals("biomes/")) {
-                    biomeFiles.add(name);
+                    biomeResourceFiles.add(name);
                 }
             }
         }
-        return biomeFiles;
+        return biomeResourceFiles;
+    }
+
+    /**
+     * returns a list of all schematic files found for this world
+     *
+     * @return a list of all schematic file names
+     * @throws IOException
+     */
+    private List<String> getSchematicFiles() throws IOException {
+        List<String> schematicsFiles = new ArrayList<>();
+        CodeSource src = WorldConfiguration.class.getProtectionDomain().getCodeSource();
+        if (src != null) {
+            URL jar = src.getLocation();
+            ZipInputStream zip = new ZipInputStream(jar.openStream());
+            while (true) {
+                ZipEntry e = zip.getNextEntry();
+                if (e == null)
+                    break;
+                String name = e.getName();
+                if (name.startsWith("schematics/") && !name.equals("schematics/")) {
+                    schematicsFiles.add(name);
+                }
+            }
+        }
+        return schematicsFiles;
     }
 
     /**
@@ -162,13 +215,14 @@ public class WorldConfiguration {
      * @return true of correctly loaded, false otherwise
      */
     private boolean loadBiomes() {
-        plugin.getLogger().info(prefix + "Checking Image-Files...");
+        plugin.getLogger().info(prefix + "Loading Biome-Map...");
         try {
             File biomeMapFile = new File(plugin.getDataFolder() + "/" + worldName + "/" + getBiomeMapName());
             if (biomeMapFile.exists()) {
                 biomeMap = ImageIO.read(biomeMapFile);
                 File heightMapFile = new File(plugin.getDataFolder() + "/" + worldName + "/" + getHeightMapName());
                 if (heightMapFile.exists()) {
+                    plugin.getLogger().info(prefix + "Loading Height-Map...");
                     heightMap = ImageIO.read(heightMapFile);
                 }
             }
@@ -178,29 +232,29 @@ public class WorldConfiguration {
         if (biomeMap == null) {
             plugin.getLogger().severe(prefix + "BiomeMap was not found! " +
                     "Place a biomeMap-File to /plugins/BitmapGeneratorPlugin/" + worldName + "/" + getBiomeMapName() +
-                    "! Then retry the command");
+                    "! Then rerun the command");
             return false;
         }
         if (heightMap == null) {
             plugin.getLogger().severe(prefix + "HeightMap was not found! " +
                     "Place a heightMap-File to /plugins/BitmapGeneratorPlugin/" + worldName + "/" + getHeightMapName() +
-                    "! Then retry the command");
+                    "! Then rerun the command");
             return false;
         }
         if (biomeMap.getWidth() != heightMap.getWidth()) {
             plugin.getLogger().severe(prefix + "BiomeMap width does not equal HeightMap width! " +
-                    "Adjust the images, then retry the command");
+                    "Adjust the images, then rerun the command");
             return false;
         }
         if (biomeMap.getHeight() != heightMap.getHeight()) {
             plugin.getLogger().severe(prefix + "BiomeMap height does not equal HeightMap height! " +
-                    "Adjust the images, then retry the command");
+                    "Adjust the images, then rerun the command");
             return false;
         }
 
         // Load biomes from the world.yml config file
         plugin.getLogger().info(prefix + "Loading biomes...");
-        biomes = getBiomeDefinitions();
+        biomes = loadBiomeDefinition();
         plugin.getLogger().info(prefix + biomes.size() + " biomes were loaded!");
 
         // Find all colors used in the biome map file
@@ -256,7 +310,7 @@ public class WorldConfiguration {
      *
      * @return a list of all biomes
      */
-    public List<BiomeDefinition> getBiomeDefinitions() {
+    public List<BiomeDefinition> loadBiomeDefinition() {
         List<BiomeDefinition> biomes = new ArrayList<>();
         for (File biomeFile : biomeFiles) {
             String biomeName = biomeFile.getName().replace(".yml", "");
@@ -265,6 +319,7 @@ public class WorldConfiguration {
             int g = biomeConfig.getInt("g");
             int b = biomeConfig.getInt("b");
             Biome biome = Biome.valueOf(biomeConfig.getString("biome"));
+            int surfaceLayerHeight = biomeConfig.getInt("surfaceLayerHeight");
             boolean snowfall = biomeConfig.getBoolean("snow");
             List<BiomeDefinition.BlockData> blocks = new ArrayList<>();
             if (biomeConfig.get("blocks") != null) {
@@ -275,7 +330,7 @@ public class WorldConfiguration {
                     blocks.add(new BiomeDefinition.BlockData(new MaterialData(block, data), chance));
                 }
             }
-            int floraCount = biomeConfig.getInt("floraChance");
+            double floraCount = biomeConfig.getDouble("floraChance");
             List<BiomeDefinition.BlockData> floraTypes = new ArrayList<>();
             if (biomeConfig.get("floraTypes") != null) {
                 for (String floraName : biomeConfig.getConfigurationSection("floraTypes").getKeys(false)) {
@@ -285,7 +340,7 @@ public class WorldConfiguration {
                     floraTypes.add(new BiomeDefinition.BlockData(new MaterialData(block, data), chance));
                 }
             }
-            int treeCount = biomeConfig.getInt("treeChance");
+            double treeCount = biomeConfig.getDouble("treeChance");
             List<BiomeDefinition.TreeData> treeTypes = new ArrayList<>();
             if (biomeConfig.get("treeTypes") != null) {
                 for (String treeName : biomeConfig.getConfigurationSection("treeTypes").getKeys(false)) {
@@ -295,7 +350,7 @@ public class WorldConfiguration {
                     treeTypes.add(new BiomeDefinition.TreeData(treeType, chance));
                 }
             }
-            int veinCount = biomeConfig.getInt("veinChance");
+            double veinCount = biomeConfig.getDouble("veinChance");
             List<BiomeDefinition.OreVein> veinTypes = new ArrayList<>();
             if (biomeConfig.get("veinTypes") != null) {
                 for (String veinName : biomeConfig.getConfigurationSection("veinTypes").getKeys(false)) {
@@ -307,14 +362,14 @@ public class WorldConfiguration {
                     veinTypes.add(new BiomeDefinition.OreVein(new MaterialData(block, data), chance, length, stroke));
                 }
             }
-            int schematicCount = biomeConfig.getInt("schematicChance");
+            double schematicCount = biomeConfig.getDouble("schematicChance");
             List<BiomeDefinition.Schematic> schematics = new ArrayList<>();
             if (biomeConfig.get("schematics") != null) {
                 for (String schematicName : biomeConfig.getConfigurationSection("schematics").getKeys(false)) {
                     String schematic = biomeConfig.getString("schematics." + schematicName + ".fileName");
-                    int negativeOffset = biomeConfig.getInt("schematics." + schematicName + ".negativeOffset");
+                    int yOffset = biomeConfig.getInt("schematics." + schematicName + ".yOffset");
                     double chance = biomeConfig.getDouble("schematics." + schematicName + ".chance");
-                    schematics.add(new BiomeDefinition.Schematic(schematic, getSchematic(schematicName), negativeOffset, chance));
+                    schematics.add(new BiomeDefinition.Schematic(schematic, getSchematic(schematic), yOffset, chance));
                 }
             }
             BiomeDefinition biomeDefinition =
@@ -322,6 +377,7 @@ public class WorldConfiguration {
                             biomeName,
                             r, g, b,
                             biome,
+                            surfaceLayerHeight,
                             snowfall,
                             blocks,
                             floraCount, floraTypes,
@@ -350,18 +406,18 @@ public class WorldConfiguration {
 
         File file = new File(plugin.getDataFolder() + "/" + worldName + "/schematics/" + filename);
         if (!file.exists()) {
-            plugin.getLogger().log(Level.SEVERE, "No schematic found with the name " + filename + "!");
+            plugin.getLogger().log(Level.SEVERE, prefix + "No schematic found with the name " + filename + "!");
             return null;
         }
         SchematicFormat schemFormat = SchematicFormat.getFormat(file);
         if (schemFormat == null) {
-            plugin.getLogger().log(Level.SEVERE, "Could not load schematic format from file " + file.getAbsolutePath() + "!");
+            plugin.getLogger().log(Level.SEVERE, prefix + "Could not load schematic format from file " + file.getAbsolutePath() + "!");
             return null;
         }
         try {
             return schemFormat.load(file);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Error loading file " + file.getAbsolutePath(), e);
+            plugin.getLogger().log(Level.SEVERE, prefix + "Error loading file " + file.getAbsolutePath(), e);
             return null;
         }
     }
@@ -443,6 +499,7 @@ public class WorldConfiguration {
 
     /**
      * returns the y coordinate of a cave at a certain coordinate
+     *
      * @param blockX the x coordinate
      * @param blockZ the z coordinate
      * @return the y coordinate of a cave at a location
@@ -461,6 +518,7 @@ public class WorldConfiguration {
 
     /**
      * checks if a cave should be generated at the given coordinate
+     *
      * @param blockX the x coordinate
      * @param blockZ the z coordinate
      * @return true or false
@@ -477,8 +535,21 @@ public class WorldConfiguration {
         return (val > 0 && val < 0.1);
     }
 
+    public byte getSnowHeight(int snowX, int snowZ) {
+        int offsetX = ((biomeMap.getWidth() / 2));
+        int offsetZ = ((biomeMap.getHeight() / 2));
+
+        int imageX = snowX + offsetX;
+        int imageZ = snowZ + offsetZ;
+
+        double val = snowHeight.noise(imageX / snowNoise, imageZ / snowNoise, 0);
+
+        return (byte)((0x010101 * (int) ((val + 1) * 4.5)) & 0x000000FF);
+    }
+
     /**
      * returns the noise value (near 0 -> very noisy, ~30 -> very calm)
+     *
      * @return the noise value
      */
     public double getNoise() {
@@ -505,7 +576,7 @@ public class WorldConfiguration {
                     biomeDefinitions.add(biomeDefinition);
                 }
             }
-    }
+        }
         return biomeDefinitions;
     }
 }

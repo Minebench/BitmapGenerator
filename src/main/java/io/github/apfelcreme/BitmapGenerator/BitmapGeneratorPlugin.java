@@ -51,14 +51,14 @@ public class BitmapGeneratorPlugin extends JavaPlugin {
     @Override
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
         if (worldName.equals("test") || worldName.equals("world")) {
-            getLogger().info("Multiverse created a map named '" + worldName + "' as it always does! Redirecting to a pseudo chunk generator! Ignore this...");
+            getLogger().info("Multiverse created a map named '" + worldName + "' as it does when checking if a Generator is valid! Redirecting to a pseudo chunk generator! Ignore this...");
             return new PseudoWorldGenerator();
         } else {
             WorldConfiguration worldConfiguration = worldConfigurations.get(worldName);
             if (worldConfiguration == null) {
 
                 // Load the configuration from file
-                worldConfiguration = WorldConfiguration.newInstance(this, worldName, new Random().nextLong(), new Random().nextLong());
+                worldConfiguration = WorldConfiguration.newInstance(this, worldName, new Random().nextLong(), new Random().nextLong(), new Random().nextLong());
                 if (worldConfiguration != null) {
                     // Loaded successfully!
                     worldConfigurations.put(worldName, worldConfiguration);
@@ -69,29 +69,6 @@ public class BitmapGeneratorPlugin extends JavaPlugin {
                 }
             }
             return new BitmapWorldGenerator(worldConfiguration);
-        }
-    }
-
-    /**
-     * copies a file from the jar file to the plugin data path
-     *
-     * @param fileName  the name of the resource file
-     * @param worldName the name of the world the file belongs to
-     */
-    public synchronized void saveResource(String fileName, String worldName) throws IOException {
-        File out = new File(getDataFolder() + "/" + worldName + "/" + fileName);
-        if (!out.exists()) {
-            out.getParentFile().mkdirs();
-            out.createNewFile();
-            InputStream in = getClass().getResourceAsStream("/" + fileName);
-            FileOutputStream fOut = new FileOutputStream(out);
-            getLogger().info("Extracting '" + fileName + "' to '" + out.getAbsolutePath() + "' (" + in.available() + " byte)");
-            int i;
-            while ((i = in.read()) != -1) {
-                fOut.write(i);
-            }
-            fOut.close();
-            in.close();
         }
     }
 }

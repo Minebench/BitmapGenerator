@@ -34,6 +34,7 @@ public class BiomeDefinition {
     private int g;
     private int b;
     private Biome biome;
+    private int surfaceLayerHeight;
     private boolean snowfall;
     private List<BlockData> blocks;
     private double floraChance;
@@ -46,13 +47,16 @@ public class BiomeDefinition {
     private List<Schematic> schematics;
 
 
-    public BiomeDefinition(String name, int r, int g, int b, Biome biome, boolean snowfall, List<BlockData> blocks, int floraChance, List<BlockData> floraTypes, int treeChance,
-                           List<TreeData> treeTypes, int veinChance, List<OreVein> veinTypes, int schematicChance, List<Schematic> schematics) {
+    public BiomeDefinition(String name, int r, int g, int b, Biome biome, int surfaceLayerHeight, boolean snowfall,
+                           List<BlockData> blocks, double floraChance, List<BlockData> floraTypes, double treeChance,
+                           List<TreeData> treeTypes, double veinChance, List<OreVein> veinTypes, double schematicChance,
+                           List<Schematic> schematics) {
         this.name = name;
         this.r = r;
         this.g = g;
         this.b = b;
         this.biome = biome;
+        this.surfaceLayerHeight = surfaceLayerHeight;
         this.snowfall = snowfall;
         this.blocks = blocks;
         this.floraChance = floraChance;
@@ -109,6 +113,15 @@ public class BiomeDefinition {
      */
     public Biome getBiome() {
         return biome;
+    }
+
+    /**
+     * returns the height of the block layer on top of the stone layer
+     *
+     * @return the height of the block layer on top of the stone layer
+     */
+    public int getSurfaceLayerHeight() {
+        return surfaceLayerHeight;
     }
 
     /**

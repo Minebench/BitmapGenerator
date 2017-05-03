@@ -1,10 +1,13 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
+import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.generator.BlockPopulator;
 
 import java.awt.image.BufferedImage;
@@ -53,9 +56,15 @@ public class SnowPopulator extends BlockPopulator {
                         for (int z = 0; z < 16; z++) {
                             int snowX = (chunk.getX() << 4) + x;
                             int snowZ = (chunk.getZ() << 4) + z;
-                            int snowY = world.getHighestBlockYAt(snowX, snowZ);
                             if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
-                                world.getBlockAt(snowX, snowY, snowZ).setTypeIdAndData(Material.SNOW.getId(), (byte) (1 + random.nextInt(4)), true);
+                                for (int y = worldConfiguration.getHeight(snowX, snowZ); y < 255; y++) {
+                                    Block block = world.getBlockAt(snowX, y, snowZ);
+                                    if (block.getType() == Material.AIR
+                                            && block.getRelative(BlockFace.DOWN).getType() != Material.SNOW
+                                            && block.getRelative(BlockFace.DOWN).getType() != Material.AIR) {
+                                        block.setTypeIdAndData(Material.SNOW.getId(), worldConfiguration.getSnowHeight(snowX, snowZ), true);
+                                    }
+                                }
                             }
                         }
                     }

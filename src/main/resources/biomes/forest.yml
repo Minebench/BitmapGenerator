@@ -2,6 +2,7 @@ r: 0
 g: 100
 b: 0
 biome: FOREST
+surfaceLayerHeight: 4
 snow: false
 blocks:
   GRASS:
@@ -47,7 +48,7 @@ treeTypes:
     chance: 0.1
 schematicChance: 0.0
 schematics: null
-veinChance: 15.0
+veinChance: 11.0
 veinTypes:
   diamond:
     block: 56

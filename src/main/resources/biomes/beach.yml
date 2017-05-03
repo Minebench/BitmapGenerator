@@ -11,34 +11,15 @@ blocks:
     data: 0
     chance: 0.1
 biome: BEACHES
+surfaceLayerHeight: 4
 snow: false
 floraChance: 0.0
 floraTypes: null
 treeChance: 0.0
 treeTypes: null
 schematicChance: 0.0
-schematics:
-  Palm1:
-    fileName: 'Palm1.schematic'
-    yOffset: -1
-    chance: 0.3
-  Palm2:
-    fileName: 'Palm2.schematic'
-    yOffset: -1
-    chance: 0.3
-  Palm3:
-    fileName: 'Palm3.schematic'
-    yOffset: 0
-    chance: 0.3
-  Palm4:
-    fileName: 'Palm4.schematic'
-    yOffset: 0
-    chance: 0.3
-  Palm5:
-    fileName: 'Palm5.schematic'
-    yOffset: 0
-    chance: 0.3
-veinChance: 15.0
+schematics: null
+veinChance: 11.0
 veinTypes:
   diamond:
     block: 56

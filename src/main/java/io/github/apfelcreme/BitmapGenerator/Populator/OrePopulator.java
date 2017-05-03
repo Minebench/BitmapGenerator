@@ -43,7 +43,6 @@ public class OrePopulator extends BlockPopulator {
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
-
         int minChunkX = -((biomeMap.getWidth() / 2) / 16);
         int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
         int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;

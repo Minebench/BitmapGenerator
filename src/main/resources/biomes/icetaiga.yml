@@ -1,46 +1,58 @@
-r: 50
+r: 0
 g: 50
-b: 0
+b: 50
 blocks:
   DIRT:
     block: 3
     data: 0
-    chance: 0.35
+    chance: 0.2
+  COARSEDIRT:
+    block: 3
+    data: 1
+    chance: 0.2
+  PODSOL:
+    block: 3
+    data: 2
+    chance: 0.25
+  GRAVEL:
+    block: 13
+    data: 0
+    chance: 0.1
   GRASS:
     block: 2
     data: 0
-    chance: 0.9
-biome: JUNGLE
+    chance: 0.4
+  STONE:
+    block: 1
+    data: 0
+    chance: 0.1
+biome: TAIGA_COLD
 surfaceLayerHeight: 4
-snow: false
-floraChance: 10.0
+snow: true
+floraChance: 25.0
 floraTypes:
   grass:
     block: 31
     data: 1
-    chance: 0.2
+    chance: 0.4
   farn:
     block: 31
     data: 2
-    chance: 0.7
-  blue:
-    block: 38
-    data: 1
-    chance: 0.01
-treeChance: 22.0
-treeTypes:
-  bigjungle:
-    type: JUNGLE
-    chance: 0.1
-  junglebush:
-    type: JUNGLE_BUSH
-    chance: 0.8
-  smalljungle:
-    type: SMALL_JUNGLE
     chance: 0.4
+treeChance: 12.0
+treeTypes:
+  redwood:
+    type: REDWOOD
+    chance: 0.9
+  megaredwood:
+    type: MEGA_REDWOOD
+    chance: 0.1
+  tallredwood:
+    type: TALL_REDWOOD
+    chance: 0.1
 schematicChance: 0.0
 schematics: null
-veinChance: 11.0
+veinChance: 9.0
 veinTypes:
   diamond:
     block: 56
@@ -51,37 +63,25 @@ veinTypes:
   gold:
     block: 14
     data: 0
-    chance: 0.04
+    chance: 0.07
     length: 2
     stroke: 2
   iron:
     block: 15
     data: 0
-    chance: 0.1
+    chance: 0.2
     length: 3
     stroke: 2
   coal:
     block: 16
     data: 0
-    chance: 0.15
+    chance: 0.25
     length: 3
     stroke: 3
-  emerald:
-    block: 129
-    data: 0
-    chance: 0.02
-    length: 1
-    stroke: 1
-  lapis:
-    block: 21
-    data: 0
-    chance: 0.03
-    length: 2
-    stroke: 2
   redstone:
     block: 73
     data: 0
-    chance: 0.07
+    chance: 0.01
     length: 3
     stroke: 2
   granite:
@@ -102,9 +102,3 @@ veinTypes:
     chance: 0.1
     length: 3
     stroke: 2
-  dirt:
-    block: 3
-    data: 0
-    chance: 0.3
-    length: 5
-    stroke: 4

@@ -11,6 +11,7 @@ blocks:
     data: 0
     chance: 0.05
 biome: DESERT
+surfaceLayerHeight: 4
 snow: false
 floraChance: 4.0
 floraTypes:
@@ -26,7 +27,7 @@ treeChance: 0.0
 treeTypes: null
 schematicChance: 0.0
 schematics: null
-veinChance: 15.0
+veinChance: 11.0
 veinTypes:
   diamond:
     block: 56

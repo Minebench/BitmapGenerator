@@ -48,8 +48,6 @@ public class BitmapWorldGenerator extends ChunkGenerator {
         int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
 
-        int surfaceLayerHeight = 4;
-
         if (x >= minChunkX && x <= maxChunkX && z >= minChunkZ && z <= maxChunkZ) {
             for (int cX = 0; cX < 16; cX++) {
                 for (int cZ = 0; cZ < 16; cZ++) {
@@ -63,14 +61,12 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                             int heighestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
 
                             // fill with the destined block
-                            if (cY <= heighestBlock && cY > (heighestBlock - surfaceLayerHeight)) {
+                            if (cY <= heighestBlock && cY > (heighestBlock - biomeDefinition.getSurfaceLayerHeight())) {
+                                // surface layer
                                 data.setBlock(cX, cY, cZ, biomeDefinition.nextBlock());
-                            } else if (cY <= (heighestBlock - surfaceLayerHeight)) { // everything under the surface layer
-//                            data.setBlock(cX, cY, cZ, naturalChunkData[cX][cY][cZ]);
+                            } else if (cY <= (heighestBlock - biomeDefinition.getSurfaceLayerHeight())) {
+                                // everything under the surface layer, ores and caves will be populated later
                                 data.setBlock(cX, cY, cZ, Material.STONE);
-                                // ores will be populated later
-                            } else if (cY >= heighestBlock) { // everything above the highest block -> air
-                                data.setBlock(cX, cY, cZ, new MaterialData(Material.AIR));
                             }
 
                             // Fill everything under the waterHeight-level with water
@@ -96,6 +92,12 @@ public class BitmapWorldGenerator extends ChunkGenerator {
         return data;
     }
 
+    /**
+     * calls all populators in a given order
+     *
+     * @param world -
+     * @return -
+     */
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
         return Arrays.asList(
