@@ -35,7 +35,7 @@ floraTypes:
     block: 38
     data: 3
     chance: 0.1
-treeChance: 12.0
+treeChance: 9.0
 treeTypes:
   oak:
     type: TREE

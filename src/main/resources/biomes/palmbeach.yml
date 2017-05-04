@@ -79,10 +79,6 @@ schematics:
     fileName: '__palme16.schematic'
     yOffset: 0
     chance: 0.1
-  17:
-    fileName: '__palme17.schematic'
-    yOffset: 0
-    chance: 0.1
 veinChance: 11.0
 veinTypes:
   diamond:
