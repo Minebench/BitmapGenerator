@@ -60,6 +60,7 @@ public class WorldConfiguration {
     private Perlin noiseHeight;
     private Perlin noiseMap;
     private Perlin snowHeight;
+    private int waterHeight;
 
     /**
      * creates a new instance if all is fine, or null if an error occurs during the loading process
@@ -126,6 +127,7 @@ public class WorldConfiguration {
             this.caveRadius = worldConfig.getDouble("caveRadius", 3.9d);
             this.noise = worldConfig.getDouble("noise", 48);
             this.snowNoise = worldConfig.getDouble("snowNoise", 24);
+            this.waterHeight = worldConfig.getInt("waterHeight");
             this.noiseMap = new Perlin(caveSeed);
             this.noiseHeight = new Perlin(heightSeed);
             this.snowHeight = new Perlin(snowSeed);
@@ -356,12 +358,13 @@ public class WorldConfiguration {
             List<BiomeDefinition.OreVein> veinTypes = new ArrayList<>();
             if (biomeConfig.get("veinTypes") != null) {
                 for (String veinName : biomeConfig.getConfigurationSection("veinTypes").getKeys(false)) {
-                    Material block = Material.getMaterial(biomeConfig.getInt("veinTypes." + veinName + ".block"));
-                    byte data = (byte) biomeConfig.getInt("veinTypes." + veinName + ".data");
-                    double chance = biomeConfig.getDouble("veinTypes." + veinName + ".chance");
-                    int length = biomeConfig.getInt("veinTypes." + veinName + ".length");
-                    int stroke = biomeConfig.getInt("veinTypes." + veinName + ".stroke");
-                    veinTypes.add(new BiomeDefinition.OreVein(new MaterialData(block, data), chance, length, stroke));
+                    Material block = Material.getMaterial(biomeConfig.getInt("veinTypes." + veinName + ".block", worldConfig.getInt("veinTypes." + veinName + ".block")));
+                    byte data = (byte) biomeConfig.getInt("veinTypes." + veinName + ".data", worldConfig.getInt("veinTypes." + veinName + ".data"));
+                    double chance = biomeConfig.getDouble("veinTypes." + veinName + ".chance", worldConfig.getInt("veinTypes." + veinName + ".chance"));
+                    int length = biomeConfig.getInt("veinTypes." + veinName + ".length", worldConfig.getInt("veinTypes." + veinName + ".length"));
+                    int stroke = biomeConfig.getInt("veinTypes." + veinName + ".stroke", worldConfig.getInt("veinTypes." + veinName + ".stroke"));
+                    int maxHeight = biomeConfig.getInt("veinTypes." + veinName + ".max-height", worldConfig.getInt("veinTypes." + veinName + ".max-height", 255));
+                    veinTypes.add(new BiomeDefinition.OreVein(new MaterialData(block, data), chance, length, stroke, maxHeight));
                 }
             }
             double schematicCount = biomeConfig.getDouble("schematicChance");
@@ -452,7 +455,7 @@ public class WorldConfiguration {
      * @return the file name of the biome map
      */
     public int getWaterHeight() {
-        return worldConfig.getInt("waterHeight");
+        return waterHeight;
     }
 
     /**

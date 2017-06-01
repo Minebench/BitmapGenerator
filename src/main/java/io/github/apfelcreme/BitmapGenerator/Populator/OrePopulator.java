@@ -58,7 +58,7 @@ public class OrePopulator extends BlockPopulator {
                 for (int i = 0; i < veinCount; i++) {
                     BiomeDefinition.OreVein vein = biomeDefinition.nextVein();
                     int startX = random.nextInt(10);
-                    int startY = 5 + random.nextInt(40);
+                    int startY = 5 + random.nextInt((random.nextBoolean() ? vein.getMaxHeight() : Math.min(worldConfiguration.getWaterHeight(), vein.getMaxHeight())) - 5);
                     int startZ = random.nextInt(10);
                     double alpha = Math.toRadians(random.nextInt(90));
                     double beta = Math.toRadians(random.nextInt(90));
@@ -69,7 +69,7 @@ public class OrePopulator extends BlockPopulator {
                     List<Point3D> path = bresenham(new Point3D(startX, startY, startZ), new Point3D(endX, endY, endZ));
                     for (Point3D point : path) {
                         for (int sX = 0; sX < vein.getStroke(); sX++) {
-                            for (int sY = 0; sY < vein.getStroke(); sY++) {
+                            for (int sY = 0; sY < vein.getStroke() && point.y + sY < vein.getMaxHeight(); sY++) {
                                 for (int sZ = 0; sZ < vein.getStroke(); sZ++) {
                                     if (chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).getType() == Material.STONE) {
                                         chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).setTypeIdAndData(

@@ -348,12 +348,14 @@ public class BiomeDefinition {
         private double chance;
         private int length;
         private int stroke;
+        private int maxHeight;
 
-        public OreVein(MaterialData ore, double chance, int length, int stroke) {
+        public OreVein(MaterialData ore, double chance, int length, int stroke, int maxHeight) {
             this.ore = ore;
             this.chance = chance;
             this.length = length;
             this.stroke = stroke;
+            this.maxHeight = maxHeight;
         }
 
         public MaterialData getOre() {
@@ -368,9 +370,13 @@ public class BiomeDefinition {
             return stroke;
         }
 
+        public int getMaxHeight() {
+            return maxHeight;
+        }
+
         @Override
         public String toString() {
-            return ore.getItemType().name() + ":" + ore.getData() + "*" + chance;
+            return ore.getItemType().name() + ":" + ore.getData() + "*" + chance + "<" + maxHeight;
         }
     }
 
