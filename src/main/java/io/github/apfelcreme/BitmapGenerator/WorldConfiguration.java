@@ -44,6 +44,7 @@ public class WorldConfiguration {
 
     private BitmapGeneratorPlugin plugin;
     private String worldName;
+    private File worldFolder;
     private List<File> biomeFiles;
     private List<BiomeDefinition> biomes;
     private String prefix;
@@ -97,26 +98,27 @@ public class WorldConfiguration {
     private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed, long snowSeed) {
         this.plugin = plugin;
         this.worldName = worldName;
+        this.worldFolder = new File(plugin.getDataFolder(), worldName);
         this.prefix = "[" + worldName + "] ";
         this.biomeFiles = new ArrayList<>();
         try {
 
             //extract all resources if they dont exist yet (world.yml, all biome.yml-files and all schematics)
             Util.saveResource(plugin, "world.yml", worldName);
-            worldConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+            worldConfig = YamlConfiguration.loadConfiguration(new File(worldFolder, "world.yml"));
 
             // Load the world seeds and initiate the Perlin-Noise for cave generation
             if (worldConfig.get("caveSeed") == null) {
                 worldConfig.set("caveSeed", caveSeed);
-                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+                worldConfig.save(new File(worldFolder, "world.yml"));
             }
             if (worldConfig.get("heightSeed") == null) {
                 worldConfig.set("heightSeed", heightSeed);
-                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+                worldConfig.save(new File(worldFolder, "world.yml"));
             }
             if (worldConfig.get("snowSeed") == null) {
                 worldConfig.set("snowSeed", snowSeed);
-                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+                worldConfig.save(new File(worldFolder, "world.yml"));
             }
             caveSeed = worldConfig.getLong("caveSeed");
             heightSeed = worldConfig.getLong("heightSeed");
@@ -131,11 +133,11 @@ public class WorldConfiguration {
             plugin.getLogger().info("Cave-Generation: " + caveSeed + ", Cave-Height: " + heightSeed + ", Snow-Height: " + snowSeed);
 
             // create some directories
-            if (!new File(plugin.getDataFolder() + "/" + worldName + "/schematics").exists()) {
-                new File(plugin.getDataFolder() + "/" + worldName + "/schematics").mkdirs();
+            if (!new File(worldFolder, "schematics").exists()) {
+                new File(worldFolder, "schematics").mkdirs();
             }
-            if (!new File(plugin.getDataFolder() + "/" + worldName + "/biomes").exists()) {
-                new File(plugin.getDataFolder() + "/" + worldName + "/biomes").mkdirs();
+            if (!new File(worldFolder, "biomes").exists()) {
+                new File(worldFolder, "biomes").mkdirs();
             }
 
             // extract the biome files
@@ -149,7 +151,7 @@ public class WorldConfiguration {
             }
 
 
-            File folder = new File(plugin.getDataFolder() + "/" + worldName + "/biomes");
+            File folder = new File(worldFolder, "biomes");
             if (folder.exists() && folder.isDirectory()) {
                 Collections.addAll(biomeFiles, folder.listFiles());
             }
@@ -217,10 +219,10 @@ public class WorldConfiguration {
     private boolean loadBiomes() {
         plugin.getLogger().info(prefix + "Loading Biome-Map...");
         try {
-            File biomeMapFile = new File(plugin.getDataFolder() + "/" + worldName + "/" + getBiomeMapName());
+            File biomeMapFile = new File(worldFolder, "" + getBiomeMapName());
             if (biomeMapFile.exists()) {
                 biomeMap = ImageIO.read(biomeMapFile);
-                File heightMapFile = new File(plugin.getDataFolder() + "/" + worldName + "/" + getHeightMapName());
+                File heightMapFile = new File(worldFolder, "" + getHeightMapName());
                 if (heightMapFile.exists()) {
                     plugin.getLogger().info(prefix + "Loading Height-Map...");
                     heightMap = ImageIO.read(heightMapFile);
@@ -404,7 +406,7 @@ public class WorldConfiguration {
             filename += ".schematic";
         }
 
-        File file = new File(plugin.getDataFolder() + "/" + worldName + "/schematics/" + filename);
+        File file = new File(worldFolder, "schematics/" + filename);
         if (!file.exists()) {
             plugin.getLogger().log(Level.SEVERE, prefix + "No schematic found with the name " + filename + "!");
             return null;
