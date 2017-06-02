@@ -273,7 +273,6 @@ public class BiomeDefinition {
      *
      * @return a random schematic
      */
-    @SuppressWarnings( "deprecation" )
     public Schematic nextSchematic() {
         int totalSum = 0;
         Random random = new Random();
