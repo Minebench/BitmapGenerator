@@ -45,31 +45,23 @@ public class FloraPopulator extends BlockPopulator {
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
-
-        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
-        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
-        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
-        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
-
-        if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-                double floraCount;
-                if (biomeDefinition.getFloraChance() < 1) {
-                    floraCount = Math.random() <= biomeDefinition.getFloraChance() ? 1 : 0;
-                } else {
-                    floraCount = (int) biomeDefinition.getFloraChance();
-                }
-                for (int i = 0; i < floraCount; i++) {
-                    int floraX = (chunk.getX() << 4) + random.nextInt(16);
-                    int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int floraY = Util.getHighestBlock(world, floraX, floraZ) + 1;
-                    if (worldConfiguration.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
-                        MaterialData floraData = biomeDefinition.nextFloraData();
-                        if (floraData != null) {
-                            if (biomeDefinition.isGroundBlock(world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                                if (canBePlanted(floraData, world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                                    world.getBlockAt(floraX, floraY, floraZ).setTypeIdAndData(floraData.getItemType().getId(), floraData.getData(), true);
-                                }
+        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
+            double floraCount;
+            if (biomeDefinition.getFloraChance() < 1) {
+                floraCount = Math.random() <= biomeDefinition.getFloraChance() ? 1 : 0;
+            } else {
+                floraCount = (int) biomeDefinition.getFloraChance();
+            }
+            for (int i = 0; i < floraCount; i++) {
+                int floraX = (chunk.getX() << 4) + random.nextInt(16);
+                int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
+                int floraY = Util.getHighestBlock(world, floraX, floraZ) + 1;
+                if (worldConfiguration.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
+                    MaterialData floraData = biomeDefinition.nextFloraData();
+                    if (floraData != null) {
+                        if (biomeDefinition.isGroundBlock(world.getBlockAt(floraX, floraY - 1, floraZ))) {
+                            if (canBePlanted(floraData, world.getBlockAt(floraX, floraY - 1, floraZ))) {
+                                world.getBlockAt(floraX, floraY, floraZ).setTypeIdAndData(floraData.getItemType().getId(), floraData.getData(), true);
                             }
                         }
                     }

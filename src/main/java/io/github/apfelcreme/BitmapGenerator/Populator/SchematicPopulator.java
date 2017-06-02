@@ -47,112 +47,106 @@ public class SchematicPopulator extends BlockPopulator {
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
-        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
-        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
-        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
-        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
-        if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-                double schematicCount;
-                if (biomeDefinition.getSchematicChance() < 1) {
-                    schematicCount = Math.random() <= biomeDefinition.getSchematicChance() ? 1 : 0;
-                } else {
-                    schematicCount = (int) biomeDefinition.getSchematicChance();
-                }
-                for (int i = 0; i < schematicCount; i++) {
+        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
+            double schematicCount;
+            if (biomeDefinition.getSchematicChance() < 1) {
+                schematicCount = Math.random() <= biomeDefinition.getSchematicChance() ? 1 : 0;
+            } else {
+                schematicCount = (int) biomeDefinition.getSchematicChance();
+            }
+            for (int i = 0; i < schematicCount; i++) {
 
-                    int schematicX = (chunk.getX() << 4) + random.nextInt(16);
-                    int schematicZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int schematicY = Util.getHighestBlock(world, schematicX, schematicZ) + 1;
+                int schematicX = (chunk.getX() << 4) + random.nextInt(16);
+                int schematicZ = (chunk.getZ() << 4) + random.nextInt(16);
+                int schematicY = Util.getHighestBlock(world, schematicX, schematicZ) + 1;
 
-                    if (worldConfiguration.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
-                        if (biomeDefinition.isGroundBlock(world.getBlockAt(schematicX, schematicY - 1, schematicZ))) {
-                            BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
+                if (worldConfiguration.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
+                    if (biomeDefinition.isGroundBlock(world.getBlockAt(schematicX, schematicY - 1, schematicZ))) {
+                        BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
 
-                            // initialize the values needed to rotate the schematic
-                            int rotation = random.nextInt(4);
-                            // Whether or not the schematic points into north or south direction
-                            boolean northSouth = rotation % 2 == 0;
-                            int xMod;
-                            int zMod;
-                            int xStart = schematic.getClipboard().getMinimumPoint().getBlockX();
-                            int yStart = schematic.getClipboard().getMinimumPoint().getBlockY();
-                            int zStart = schematic.getClipboard().getMinimumPoint().getBlockZ();
-                            if (rotation < 2) {
-                                xMod = 1;
-                            } else {
-                                xMod = -1;
-                                xStart += schematic.getClipboard().getDimensions().getBlockX() - 1;
-                            }
-                            if (rotation > 0 && rotation < 3) {
-                                zMod = -1;
-                                zStart += schematic.getClipboard().getDimensions().getBlockZ() - 1;
-                            } else {
-                                zMod = 1;
-                            }
+                        // initialize the values needed to rotate the schematic
+                        int rotation = random.nextInt(4);
+                        // Whether or not the schematic points into north or south direction
+                        boolean northSouth = rotation % 2 == 0;
+                        int xMod;
+                        int zMod;
+                        int xStart = schematic.getClipboard().getMinimumPoint().getBlockX();
+                        int yStart = schematic.getClipboard().getMinimumPoint().getBlockY();
+                        int zStart = schematic.getClipboard().getMinimumPoint().getBlockZ();
+                        if (rotation < 2) {
+                            xMod = 1;
+                        } else {
+                            xMod = -1;
+                            xStart += schematic.getClipboard().getDimensions().getBlockX() - 1;
+                        }
+                        if (rotation > 0 && rotation < 3) {
+                            zMod = -1;
+                            zStart += schematic.getClipboard().getDimensions().getBlockZ() - 1;
+                        } else {
+                            zMod = 1;
+                        }
 
-                            int schematicWidth = northSouth
-                                    ? schematic.getClipboard().getDimensions().getBlockX()
-                                    : schematic.getClipboard().getDimensions().getBlockZ();
-                            int schematicHeight = schematic.getClipboard().getDimensions().getBlockY();
-                            int schematicLength = northSouth
-                                    ? schematic.getClipboard().getDimensions().getBlockZ()
-                                    : schematic.getClipboard().getDimensions().getBlockX();
-                            // Try putting schematic on floor
-                            int schematicOffset = schematic.getYOffset();
-                            boolean foundSolid = false;
-                            for (int testedY = 0; testedY < schematicHeight && !foundSolid; testedY++) {
-                                for (int x = 0; x < schematicWidth; x++) {
-                                    for (int z = 0; z < schematicLength; z++) {
-                                        // Create the rotated vector
-                                        Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
-                                        BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
-                                        if (b != null && !b.isAir()) {
-                                            for (int offset = schematicOffset; yStart - offset > 0; offset--) {
-                                                Block block = world.getBlockAt(
-                                                        schematicX + x - (schematicWidth / 2),
-                                                        schematicY + offset - 1,
-                                                        schematicZ + z - (schematicLength / 2));
-                                                if (block.getType().isSolid()) {
-                                                    schematicOffset = offset;
-                                                    foundSolid = true;
-                                                    break;
-                                                }
+                        int schematicWidth = northSouth
+                                ? schematic.getClipboard().getDimensions().getBlockX()
+                                : schematic.getClipboard().getDimensions().getBlockZ();
+                        int schematicHeight = schematic.getClipboard().getDimensions().getBlockY();
+                        int schematicLength = northSouth
+                                ? schematic.getClipboard().getDimensions().getBlockZ()
+                                : schematic.getClipboard().getDimensions().getBlockX();
+                        // Try putting schematic on floor
+                        int schematicOffset = schematic.getYOffset();
+                        boolean foundSolid = false;
+                        for (int testedY = 0; testedY < schematicHeight && !foundSolid; testedY++) {
+                            for (int x = 0; x < schematicWidth; x++) {
+                                for (int z = 0; z < schematicLength; z++) {
+                                    // Create the rotated vector
+                                    Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
+                                    BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
+                                    if (b != null && !b.isAir()) {
+                                        for (int offset = schematicOffset; yStart - offset > 0; offset--) {
+                                            Block block = world.getBlockAt(
+                                                    schematicX + x - (schematicWidth / 2),
+                                                    schematicY + offset - 1,
+                                                    schematicZ + z - (schematicLength / 2));
+                                            if (block.getType().isSolid()) {
+                                                schematicOffset = offset;
+                                                foundSolid = true;
+                                                break;
                                             }
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            for (int x = 0; x < schematicWidth; x++) {
-                                for (int y = 0; y < schematicHeight; y++) {
-                                    for (int z = 0; z < schematicLength; z++) {
-                                        try {
-                                            Block block = world.getBlockAt(
-                                                    schematicX + x - (schematicWidth / 2),
-                                                    schematicY + y + schematicOffset,
-                                                    schematicZ + z - (schematicLength / 2));
-                                            // Create the rotated vector
-                                            Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + y, zStart + zMod * (northSouth ? z : x));
-                                            BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
-                                            if (b != null && !b.isAir()) {
-                                                int blockData = b.getData();
-                                                // Rotate the actual block
-                                                if (rotation < 3) {
-                                                    for (int rot = 0; rot < rotation; rot++) {
-                                                        blockData = BlockData.rotate90(b.getId(), blockData);
-                                                    }
-                                                } else {
-                                                    blockData = BlockData.rotate90Reverse(b.getId(), blockData);
+                        for (int x = 0; x < schematicWidth; x++) {
+                            for (int y = 0; y < schematicHeight; y++) {
+                                for (int z = 0; z < schematicLength; z++) {
+                                    try {
+                                        Block block = world.getBlockAt(
+                                                schematicX + x - (schematicWidth / 2),
+                                                schematicY + y + schematicOffset,
+                                                schematicZ + z - (schematicLength / 2));
+                                        // Create the rotated vector
+                                        Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + y, zStart + zMod * (northSouth ? z : x));
+                                        BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
+                                        if (b != null && !b.isAir()) {
+                                            int blockData = b.getData();
+                                            // Rotate the actual block
+                                            if (rotation < 3) {
+                                                for (int rot = 0; rot < rotation; rot++) {
+                                                    blockData = BlockData.rotate90(b.getId(), blockData);
                                                 }
-                                                block.setTypeIdAndData(b.getId(), (byte) blockData, true);
+                                            } else {
+                                                blockData = BlockData.rotate90Reverse(b.getId(), blockData);
                                             }
-                                        } catch (ArrayIndexOutOfBoundsException e) {
-                                            Bukkit.getServer().getLogger().severe(
-                                                    "Error: too fast (?) at " + schematicX + "," + schematicY + "," + schematicZ);
-                                            e.printStackTrace();
-                                            // TODO: Happens sometimes for no apparent reason ?
+                                            block.setTypeIdAndData(b.getId(), (byte) blockData, true);
                                         }
+                                    } catch (ArrayIndexOutOfBoundsException e) {
+                                        Bukkit.getServer().getLogger().severe(
+                                                "Error: too fast (?) at " + schematicX + "," + schematicY + "," + schematicZ);
+                                        e.printStackTrace();
+                                        // TODO: Happens sometimes for no apparent reason ?
                                     }
                                 }
                             }

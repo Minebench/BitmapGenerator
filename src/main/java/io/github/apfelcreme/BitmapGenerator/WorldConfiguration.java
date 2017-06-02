@@ -478,12 +478,8 @@ public class WorldConfiguration {
      * @return the biome defined by the biomeMap at the given point
      */
     public BiomeDefinition getBiomeDefinition(int blockX, int blockZ) {
-
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
+        int imageX = addOffset(blockX,  heightMap.getWidth());
+        int imageZ = addOffset(blockZ,  heightMap.getHeight());
 
         int biomeR = (biomeMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
         int biomeG = (biomeMap.getRGB(imageX, imageZ) >> 8) & 0x000000FF;
@@ -504,14 +500,20 @@ public class WorldConfiguration {
      * @return the height of the location referenced in the height map
      */
     public int getHeight(int blockX, int blockZ) {
-
-        int offsetX = ((heightMap.getWidth() / 2));
-        int offsetZ = ((heightMap.getHeight() / 2));
-
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
+        int imageX = addOffset(blockX,  heightMap.getWidth());
+        int imageZ = addOffset(blockZ,  heightMap.getHeight());
 
         return (heightMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
+    }
+
+    private int addOffset(int number, int size) {
+        int result = size / 2 + number;
+        if (result < 0) {
+            result = 0;
+        } else if (result >= size) {
+            result = size - 1;
+        }
+        return result;
     }
 
     /**
