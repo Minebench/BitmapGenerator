@@ -54,6 +54,9 @@ public class BitmapGeneratorPlugin extends JavaPlugin {
             getLogger().info("Multiverse created a map named '" + worldName + "' as it does when checking if a Generator is valid! Redirecting to a pseudo chunk generator! Ignore this...");
             return new PseudoWorldGenerator();
         } else {
+            if (id != null && !id.isEmpty()) {
+                worldName = id;
+            }
             WorldConfiguration worldConfiguration = worldConfigurations.get(worldName);
             if (worldConfiguration == null) {
 
