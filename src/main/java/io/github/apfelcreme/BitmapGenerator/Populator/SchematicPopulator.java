@@ -103,12 +103,12 @@ public class SchematicPopulator extends BlockPopulator {
                                     Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
                                     BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
                                     if (b != null && !b.isAir()) {
-                                        for (int offset = schematicOffset; yStart - offset > 0; offset--) {
+                                        for (int offset = schematicOffset; yStart + offset > 0; offset--) {
                                             Block block = world.getBlockAt(
                                                     schematicX + x - (schematicWidth / 2),
                                                     schematicY + offset - 1,
                                                     schematicZ + z - (schematicLength / 2));
-                                            if (block.getType().isSolid()) {
+                                            if (block.getType().isOccluding()) {
                                                 schematicOffset = offset;
                                                 foundSolid = true;
                                                 break;
