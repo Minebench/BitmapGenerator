@@ -1,6 +1,6 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import com.sk89q.worldedit.CuboidClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import org.bukkit.TreeType;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -285,9 +285,7 @@ public class BiomeDefinition {
         while (sum < index) {
             sum = sum + (int) (schematics.get(i++).chance * 100);
         }
-        Schematic schematic = schematics.get(Math.max(0, i - 1));
-        schematic.getClipboard().rotate2D(random.nextInt(4) * 90);
-        return schematic;
+        return schematics.get(Math.max(0, i - 1));
     }
 
     @Override
@@ -385,18 +383,18 @@ public class BiomeDefinition {
      */
     public static class Schematic {
         private String name;
-        private CuboidClipboard clipboard;
+        private Clipboard clipboard;
         private int yOffset;
         private double chance;
 
-        public Schematic(String name, CuboidClipboard clipboard, int yOffset, double chance) {
+        public Schematic(String name, Clipboard clipboard, int yOffset, double chance) {
             this.name = name;
             this.clipboard = clipboard;
             this.yOffset = yOffset;
             this.chance = chance;
         }
 
-        public CuboidClipboard getClipboard() {
+        public Clipboard getClipboard() {
             return clipboard;
         }
 

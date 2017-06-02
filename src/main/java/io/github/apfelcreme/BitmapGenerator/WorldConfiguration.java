@@ -1,10 +1,14 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import com.sk89q.worldedit.CuboidClipboard;
-import com.sk89q.worldedit.schematic.SchematicFormat;
+import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import com.sk89q.worldedit.util.io.Closer;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.material.MaterialData;
@@ -12,7 +16,9 @@ import org.bukkit.material.MaterialData;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.security.CodeSource;
@@ -61,6 +67,7 @@ public class WorldConfiguration {
     private Perlin noiseMap;
     private Perlin snowHeight;
     private int waterHeight;
+    private World world;
 
     /**
      * creates a new instance if all is fine, or null if an error occurs during the loading process
@@ -99,6 +106,7 @@ public class WorldConfiguration {
     private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed, long snowSeed) {
         this.plugin = plugin;
         this.worldName = worldName;
+
         this.worldFolder = new File(plugin.getDataFolder(), worldName);
         this.prefix = "[" + worldName + "] ";
         this.biomeFiles = new ArrayList<>();
@@ -400,7 +408,7 @@ public class WorldConfiguration {
      * @param filename a file name
      * @return the clipboard of the schematic
      */
-    public CuboidClipboard getSchematic(String filename) {
+    public Clipboard getSchematic(String filename) {
         if (filename == null || filename.isEmpty()) {
             return null;
         }
@@ -414,13 +422,17 @@ public class WorldConfiguration {
             plugin.getLogger().log(Level.SEVERE, prefix + "No schematic found with the name " + filename + "!");
             return null;
         }
-        SchematicFormat schemFormat = SchematicFormat.getFormat(file);
+        ClipboardFormat schemFormat = ClipboardFormat.findByFile(file);
         if (schemFormat == null) {
             plugin.getLogger().log(Level.SEVERE, prefix + "Could not load schematic format from file " + file.getAbsolutePath() + "!");
             return null;
         }
+        Closer closer = Closer.create();
         try {
-            return schemFormat.load(file);
+            FileInputStream fis = closer.register(new FileInputStream(file));
+            BufferedInputStream bis = closer.register(new BufferedInputStream(fis));
+            ClipboardReader reader = schemFormat.getReader(bis);
+            return reader.read(BukkitUtil.getLocalWorld(world).getWorldData());
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, prefix + "Error loading file " + file.getAbsolutePath(), e);
             return null;
