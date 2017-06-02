@@ -1,6 +1,8 @@
 biomeMap: 'biomemap.png'
 heightMap: 'heightmap.png'
+rivertMap: 'rivermap.png'
 waterHeight: 60
+riverDepth: 4
 caveRadius: 3.9
 noise: 48.0
 snowNoise: 24.0

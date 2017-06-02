@@ -5,6 +5,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.util.io.Closer;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
@@ -63,6 +64,7 @@ public class WorldConfiguration {
     private YamlConfiguration worldConfig;
     private BufferedImage biomeMap = null;
     private BufferedImage heightMap = null;
+    private BufferedImage riverMap = null;
 
     private double caveRadius;
     private double noise;
@@ -72,6 +74,7 @@ public class WorldConfiguration {
     private Perlin noiseMap;
     private Perlin snowHeight;
     private int waterHeight;
+    private int riverDepth;
     private World world;
 
     /**
@@ -141,6 +144,7 @@ public class WorldConfiguration {
             this.noise = worldConfig.getDouble("noise", 48);
             this.snowNoise = worldConfig.getDouble("snowNoise", 24);
             this.waterHeight = worldConfig.getInt("waterHeight");
+            this.riverDepth = worldConfig.getInt("riverDepth", 4);
             this.noiseMap = new Perlin(caveSeed);
             this.noiseHeight = new Perlin(heightSeed);
             this.snowHeight = new Perlin(snowSeed);
@@ -234,13 +238,18 @@ public class WorldConfiguration {
     private boolean loadBiomes() {
         plugin.getLogger().info(prefix + "Loading Biome-Map...");
         try {
-            File biomeMapFile = new File(worldFolder, "" + getBiomeMapName());
+            File biomeMapFile = new File(worldFolder, getBiomeMapName());
             if (biomeMapFile.exists()) {
                 biomeMap = ImageIO.read(biomeMapFile);
-                File heightMapFile = new File(worldFolder, "" + getHeightMapName());
+                File heightMapFile = new File(worldFolder, getHeightMapName());
                 if (heightMapFile.exists()) {
                     plugin.getLogger().info(prefix + "Loading Height-Map...");
                     heightMap = ImageIO.read(heightMapFile);
+                }
+                File riverMapFile = new File(worldFolder, getRiverMapName());
+                if (riverMapFile.exists()) {
+                    plugin.getLogger().info(prefix + "Loading River-Map...");
+                    riverMap = ImageIO.read(riverMapFile);
                 }
             }
         } catch (IOException e) {
@@ -460,6 +469,15 @@ public class WorldConfiguration {
     }
 
     /**
+     * returns the file name of the river map
+     *
+     * @return the file name of the river map
+     */
+    public String getRiverMapName() {
+        return worldConfig.getString("riverMap");
+    }
+
+    /**
      * returns the file name of the biome map
      *
      * @return the file name of the biome map
@@ -494,6 +512,23 @@ public class WorldConfiguration {
         int imageZ = addOffset(blockZ,  heightMap.getHeight());
 
         return (heightMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
+    }
+
+    /**
+     * returns the river depth at a location
+     *
+     * @param blockX the x coordinate of the block
+     * @param blockZ the z coordinate of the block
+     * @return the river depth of the location referenced in the river depth map
+     */
+    public int getRiverDepth(int blockX, int blockZ) {
+        if (riverMap == null) {
+            return 0;
+        }
+        int imageX = addOffset(blockX,  riverMap.getWidth());
+        int imageZ = addOffset(blockZ,  riverMap.getHeight());
+
+        return (int) ((((riverMap.getRGB(imageX, imageZ) >>> 24) & 0x000000FF) / 255.0) * riverDepth);
     }
 
     private int addOffset(int number, int size) {

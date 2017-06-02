@@ -1,8 +1,10 @@
 package io.github.apfelcreme.BitmapGenerator;
 
 import io.github.apfelcreme.BitmapGenerator.Populator.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.material.MaterialData;
@@ -52,16 +54,27 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                 if (biomeDefinition != null) {
                     biome.setBiome(cX, cZ, biomeDefinition.getBiome());
                     data.setBlock(cX, 0, cZ, Material.BEDROCK);
-                    for (int cY = 1; cY < 256; cY++) {
-                        int heighestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
+                    int highestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
+                    int riverDepth = worldConfiguration.getRiverDepth(imageCoordX, imageCoordZ);
+                    for (int cY = 1; cY <= Math.max(highestBlock, worldConfiguration.getWaterHeight()); cY++) {
 
-                        // fill with the destined block
-                        if (cY <= heighestBlock && cY > (heighestBlock - biomeDefinition.getSurfaceLayerHeight())) {
-                            // surface layer
-                            data.setBlock(cX, cY, cZ, biomeDefinition.nextBlock());
-                        } else if (cY <= (heighestBlock - biomeDefinition.getSurfaceLayerHeight())) {
-                            // everything under the surface layer, ores and caves will be populated later
-                            data.setBlock(cX, cY, cZ, Material.STONE);
+                        if (riverDepth > 0 && cY <= highestBlock && cY > highestBlock - riverDepth) {
+                            // fill with water (if there is a river)
+                            if (biomeDefinition.getBiome() != Biome.FROZEN_RIVER && biomeDefinition.getBiome() != Biome.RIVER) {
+                                biome.setBiome(cX, cZ, Biome.RIVER);
+                            }
+                            if (cY < highestBlock) { // Make river water one block below surface
+                                data.setBlock(cX, cY, cZ, Material.WATER);
+                            }
+                        } else {
+                            // fill with the destined block
+                            if (cY <= highestBlock && cY > (highestBlock - biomeDefinition.getSurfaceLayerHeight())) {
+                                // surface layer
+                                data.setBlock(cX, cY, cZ, biomeDefinition.nextBlock());
+                            } else if (cY <= (highestBlock - biomeDefinition.getSurfaceLayerHeight())) {
+                                // everything under the surface layer, ores and caves will be populated later
+                                data.setBlock(cX, cY, cZ, Material.STONE);
+                            }
                         }
 
                         // Fill everything under the waterHeight-level with water
