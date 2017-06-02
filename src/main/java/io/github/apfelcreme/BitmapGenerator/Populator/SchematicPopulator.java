@@ -52,7 +52,6 @@ public class SchematicPopulator extends BlockPopulator {
         int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
         int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
         if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            WorldData worldData = BukkitUtil.getLocalWorld(world).getWorldData();
             for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
                 double schematicCount;
                 if (biomeDefinition.getSchematicChance() < 1) {
