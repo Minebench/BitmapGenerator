@@ -30,9 +30,7 @@ import java.util.Random;
 public class BiomeDefinition {
 
     private String name;
-    private int r;
-    private int g;
-    private int b;
+    private int rgb;
     private Biome biome;
     private int surfaceLayerHeight;
     private boolean snowfall;
@@ -52,9 +50,10 @@ public class BiomeDefinition {
                            List<TreeData> treeTypes, double veinChance, List<OreVein> veinTypes, double schematicChance,
                            List<Schematic> schematics) {
         this.name = name;
-        this.r = r;
-        this.g = g;
-        this.b = b;
+        this.rgb = (255 << 24)
+                | (r << 16)
+                | (g << 8)
+                | (b);
         this.biome = biome;
         this.surfaceLayerHeight = surfaceLayerHeight;
         this.snowfall = snowfall;
@@ -85,7 +84,7 @@ public class BiomeDefinition {
      * @return red
      */
     public int getR() {
-        return r;
+        return (rgb >> 16) & 0x000000FF;
     }
 
     /**
@@ -94,7 +93,7 @@ public class BiomeDefinition {
      * @return green
      */
     public int getG() {
-        return g;
+        return (rgb >> 8) & 0x000000FF;
     }
 
     /**
@@ -103,7 +102,16 @@ public class BiomeDefinition {
      * @return green
      */
     public int getB() {
-        return b;
+        return rgb & 0x000000FF;
+    }
+
+    /**
+     * Get the RGB in hexadecimal form
+     *
+     * @return The RGB in hexadecimal form
+     */
+    public int getRGB() {
+        return rgb;
     }
 
     /**

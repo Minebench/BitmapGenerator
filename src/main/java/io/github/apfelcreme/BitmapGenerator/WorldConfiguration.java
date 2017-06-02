@@ -14,7 +14,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.material.MaterialData;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -22,8 +22,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.security.CodeSource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -52,7 +57,7 @@ public class WorldConfiguration {
     private String worldName;
     private File worldFolder;
     private List<File> biomeFiles;
-    private List<BiomeDefinition> biomes;
+    private Map<Integer, BiomeDefinition> biomes;
     private String prefix;
 
     private YamlConfiguration worldConfig;
@@ -283,14 +288,7 @@ public class WorldConfiguration {
         boolean valid = true;
         for (Integer rgbValue : rgbValues) {
             Color color = new Color(rgbValue);
-            BiomeDefinition foundBiome = null;
-            for (BiomeDefinition biomeDefinition : biomes) {
-                if (biomeDefinition.getR() == color.getRed()
-                        && biomeDefinition.getG() == color.getGreen()
-                        && biomeDefinition.getB() == color.getBlue()) {
-                    foundBiome = biomeDefinition;
-                }
-            }
+            BiomeDefinition foundBiome = biomes.get(color.getRGB());
             if (foundBiome != null) {
                 plugin.getLogger().info(prefix + " [" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "] -> " + foundBiome.getName());
             } else {
@@ -322,8 +320,8 @@ public class WorldConfiguration {
      *
      * @return a list of all biomes
      */
-    public List<BiomeDefinition> loadBiomeDefinition() {
-        List<BiomeDefinition> biomes = new ArrayList<>();
+    public Map<Integer, BiomeDefinition> loadBiomeDefinition() {
+        Map<Integer, BiomeDefinition> biomes = new HashMap<>();
         for (File biomeFile : biomeFiles) {
             String biomeName = biomeFile.getName().replace(".yml", "");
             YamlConfiguration biomeConfig = YamlConfiguration.loadConfiguration(biomeFile);
@@ -397,7 +395,7 @@ public class WorldConfiguration {
                             treeCount, treeTypes,
                             veinCount, veinTypes,
                             schematicCount, schematics);
-            biomes.add(biomeDefinition);
+            biomes.put(biomeDefinition.getRGB(), biomeDefinition);
         }
         return biomes;
     }
@@ -481,15 +479,7 @@ public class WorldConfiguration {
         int imageX = addOffset(blockX,  heightMap.getWidth());
         int imageZ = addOffset(blockZ,  heightMap.getHeight());
 
-        int biomeR = (biomeMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
-        int biomeG = (biomeMap.getRGB(imageX, imageZ) >> 8) & 0x000000FF;
-        int biomeB = (biomeMap.getRGB(imageX, imageZ)) & 0x000000FF;
-        for (BiomeDefinition biomeDefinition : biomes) {
-            if (biomeDefinition.getR() == biomeR && biomeDefinition.getG() == biomeG && biomeDefinition.getB() == biomeB) {
-                return biomeDefinition;
-            }
-        }
-        return null;
+        return biomes.get(biomeMap.getRGB(imageX, imageZ));
     }
 
     /**
@@ -591,7 +581,7 @@ public class WorldConfiguration {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 BiomeDefinition biomeDefinition = getBiomeDefinition((chunk.getX() * 16) + x, (chunk.getZ() * 16) + z);
-                if (!biomeDefinitions.contains(biomeDefinition)) {
+                if (biomeDefinition != null && !biomeDefinitions.contains(biomeDefinition)) {
                     biomeDefinitions.add(biomeDefinition);
                 }
             }
