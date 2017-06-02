@@ -7,6 +7,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.material.MaterialData;
 
@@ -83,6 +84,6 @@ public class FloraPopulator extends BlockPopulator {
                 return false;
             }
         }
-        return true;
+        return groundBlock.getRelative(BlockFace.UP).isEmpty();
     }
 }
