@@ -77,16 +77,17 @@ public class SchematicPopulator extends BlockPopulator {
                             int xMod;
                             int zMod;
                             int xStart = schematic.getClipboard().getMinimumPoint().getBlockX();
+                            int yStart = schematic.getClipboard().getMinimumPoint().getBlockY();
                             int zStart = schematic.getClipboard().getMinimumPoint().getBlockZ();
                             if (rotation < 2) {
                                 xMod = 1;
                             } else {
                                 xMod = -1;
-                                xStart += schematic.getClipboard().getDimensions().getBlockX();
+                                xStart += schematic.getClipboard().getDimensions().getBlockX() - 1;
                             }
                             if (rotation > 0 && rotation < 3) {
                                 zMod = -1;
-                                zStart += schematic.getClipboard().getDimensions().getBlockZ();
+                                zStart += schematic.getClipboard().getDimensions().getBlockZ() - 1;
                             } else {
                                 zMod = 1;
                             }
@@ -107,7 +108,7 @@ public class SchematicPopulator extends BlockPopulator {
                                                     schematicY + y + schematic.getYOffset(),
                                                     schematicZ + z - (schematicLength / 2));
                                             // Create the rotated vector
-                                            Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), y, zStart + zMod * (northSouth ? z : x));
+                                            Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + y, zStart + zMod * (northSouth ? z : x));
                                             BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
                                             if (b != null && !b.isAir()) {
                                                 int blockData = b.getData();
