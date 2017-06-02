@@ -76,8 +76,8 @@ public class SchematicPopulator extends BlockPopulator {
                             boolean northSouth = rotation % 2 == 0;
                             int xMod;
                             int zMod;
-                            int xStart = schematic.getClipboard().getOrigin().getBlockX();
-                            int zStart = schematic.getClipboard().getOrigin().getBlockZ();
+                            int xStart = schematic.getClipboard().getMinimumPoint().getBlockX();
+                            int zStart = schematic.getClipboard().getMinimumPoint().getBlockZ();
                             if (rotation < 2) {
                                 xMod = 1;
                             } else {
