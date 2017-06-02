@@ -99,13 +99,39 @@ public class SchematicPopulator extends BlockPopulator {
                             int schematicLength = northSouth
                                     ? schematic.getClipboard().getDimensions().getBlockZ()
                                     : schematic.getClipboard().getDimensions().getBlockX();
+                            // Try putting schematic on floor
+                            int schematicOffset = schematic.getYOffset();
+                            boolean foundSolid = false;
+                            for (int testedY = 0; testedY < schematicHeight && !foundSolid; testedY++) {
+                                for (int x = 0; x < schematicWidth; x++) {
+                                    for (int z = 0; z < schematicLength; z++) {
+                                        // Create the rotated vector
+                                        Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
+                                        BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
+                                        if (b != null && !b.isAir()) {
+                                            for (int offset = schematicOffset; yStart - offset > 0; offset--) {
+                                                Block block = world.getBlockAt(
+                                                        schematicX + x - (schematicWidth / 2),
+                                                        schematicY + offset - 1,
+                                                        schematicZ + z - (schematicLength / 2));
+                                                if (block.getType().isSolid()) {
+                                                    schematicOffset = offset;
+                                                    foundSolid = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
                             for (int x = 0; x < schematicWidth; x++) {
                                 for (int y = 0; y < schematicHeight; y++) {
                                     for (int z = 0; z < schematicLength; z++) {
                                         try {
                                             Block block = world.getBlockAt(
                                                     schematicX + x - (schematicWidth / 2),
-                                                    schematicY + y + schematic.getYOffset(),
+                                                    schematicY + y + schematicOffset,
                                                     schematicZ + z - (schematicLength / 2));
                                             // Create the rotated vector
                                             Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + y, zStart + zMod * (northSouth ? z : x));
