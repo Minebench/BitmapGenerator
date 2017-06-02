@@ -5,9 +5,7 @@ import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.TreeType;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
 import org.bukkit.generator.BlockPopulator;
 
 import java.awt.image.BufferedImage;
@@ -64,8 +62,7 @@ public class TreePopulator extends BlockPopulator {
                         if (worldConfiguration.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
                             BiomeDefinition.TreeData treeData = biomeDefinition.nextTree();
                             if (treeData != null) {
-                                CraftWorld craftWorld = ((CraftWorld) world).getHandle().getWorld();
-                                craftWorld.generateTree(new Location(world, treeX, treeY, treeZ), treeData.getType());
+                                world.generateTree(new Location(world, treeX, treeY, treeZ), treeData.getType());
                             }
                         }
                     }
