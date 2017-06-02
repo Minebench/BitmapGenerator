@@ -2,9 +2,8 @@ package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
-import com.sk89q.worldedit.math.transform.AffineTransform;
-import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.Util;
@@ -62,12 +61,6 @@ public class SchematicPopulator extends BlockPopulator {
                     schematicCount = (int) biomeDefinition.getSchematicChance();
                 }
                 for (int i = 0; i < schematicCount; i++) {
-                    BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
-
-                    ClipboardHolder schematicHolder = new ClipboardHolder(schematic.getClipboard(), worldData);
-                    AffineTransform transform = new AffineTransform();
-                    transform = transform.rotateY(random.nextInt(4) * 90);
-                    schematicHolder.setTransform(schematicHolder.getTransform().combine(transform));
 
                     int schematicX = (chunk.getX() << 4) + random.nextInt(16);
                     int schematicZ = (chunk.getZ() << 4) + random.nextInt(16);
@@ -75,9 +68,38 @@ public class SchematicPopulator extends BlockPopulator {
 
                     if (worldConfiguration.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
                         if (biomeDefinition.isGroundBlock(world.getBlockAt(schematicX, schematicY - 1, schematicZ))) {
-                            int schematicWidth = schematicHolder.getClipboard().getDimensions().getBlockX();
-                            int schematicHeight = schematicHolder.getClipboard().getDimensions().getBlockY();
-                            int schematicLength = schematicHolder.getClipboard().getDimensions().getBlockZ();
+                            BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
+
+                            // initialize the values needed to rotate the schematic
+                            int rotation = random.nextInt(4);
+                            // Whether or not the schematic points into north or south direction
+                            boolean northSouth = rotation % 2 == 0;
+                            int xMod;
+                            int zMod;
+                            int xStart;
+                            int zStart;
+                            if (rotation < 2) {
+                                xMod = 1;
+                                xStart = 0;
+                            } else {
+                                xMod = -1;
+                                xStart = schematic.getClipboard().getDimensions().getBlockX();
+                            }
+                            if (rotation > 0 && rotation < 3) {
+                                zMod = -1;
+                                zStart = schematic.getClipboard().getDimensions().getBlockZ();
+                            } else {
+                                zMod = 1;
+                                zStart = 0;
+                            }
+
+                            int schematicWidth = northSouth
+                                    ? schematic.getClipboard().getDimensions().getBlockX()
+                                    : schematic.getClipboard().getDimensions().getBlockZ();
+                            int schematicHeight = schematic.getClipboard().getDimensions().getBlockY();
+                            int schematicLength = northSouth
+                                    ? schematic.getClipboard().getDimensions().getBlockZ()
+                                    : schematic.getClipboard().getDimensions().getBlockX();
                             for (int x = 0; x < schematicWidth; x++) {
                                 for (int y = 0; y < schematicHeight; y++) {
                                     for (int z = 0; z < schematicLength; z++) {
@@ -86,9 +108,20 @@ public class SchematicPopulator extends BlockPopulator {
                                                     schematicX + x - (schematicWidth / 2),
                                                     schematicY + y + schematic.getYOffset(),
                                                     schematicZ + z - (schematicLength / 2));
-                                            BaseBlock b = schematicHolder.getClipboard().getBlock(new Vector(x, y, z));
+                                            // Create the rotated vector
+                                            Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), y, zStart + zMod * (northSouth ? z : x));
+                                            BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
                                             if (b != null && !b.isAir()) {
-                                                block.setTypeIdAndData(b.getId(), (byte) b.getData(), true);
+                                                int blockData = b.getData();
+                                                // Rotate the actual block
+                                                if (rotation < 3) {
+                                                    for (int rot = 0; rot < rotation; rot++) {
+                                                        blockData = BlockData.rotate90(b.getId(), blockData);
+                                                    }
+                                                } else {
+                                                    blockData = BlockData.rotate90Reverse(b.getId(), blockData);
+                                                }
+                                                block.setTypeIdAndData(b.getId(), (byte) blockData, true);
                                             }
                                         } catch (ArrayIndexOutOfBoundsException e) {
                                             Bukkit.getServer().getLogger().severe(
