@@ -35,11 +35,9 @@ import java.util.Random;
 public class BitmapWorldGenerator extends ChunkGenerator {
 
     private WorldConfiguration worldConfiguration;
-    private BufferedImage biomeMap;
 
     public BitmapWorldGenerator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
