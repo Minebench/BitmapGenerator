@@ -5,7 +5,6 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.util.io.Closer;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
@@ -62,9 +61,9 @@ public class WorldConfiguration {
     private String prefix;
 
     private YamlConfiguration worldConfig;
-    private BufferedImage biomeMap = null;
-    private BufferedImage heightMap = null;
-    private BufferedImage riverMap = null;
+    private BiomeDefinition[][] biomeMap = null;
+    private Integer[][] heightMap = null;
+    private Integer[][] riverMap = null;
 
     private double caveRadius;
     private double noise;
@@ -237,63 +236,73 @@ public class WorldConfiguration {
      */
     private boolean loadBiomes() {
         plugin.getLogger().info(prefix + "Loading Biome-Map...");
+        BufferedImage biomeImage = null;
+        BufferedImage heightImage = null;
+        BufferedImage riverImage = null;
         try {
             File biomeMapFile = new File(worldFolder, getBiomeMapName());
             if (biomeMapFile.exists()) {
-                biomeMap = ImageIO.read(biomeMapFile);
+                biomeImage = ImageIO.read(biomeMapFile);
                 File heightMapFile = new File(worldFolder, getHeightMapName());
                 if (heightMapFile.exists()) {
                     plugin.getLogger().info(prefix + "Loading Height-Map...");
-                    heightMap = ImageIO.read(heightMapFile);
+                    heightImage = ImageIO.read(heightMapFile);
                 }
                 File riverMapFile = new File(worldFolder, getRiverMapName());
                 if (riverMapFile.exists()) {
                     plugin.getLogger().info(prefix + "Loading River-Map...");
-                    riverMap = ImageIO.read(riverMapFile);
+                    riverImage = ImageIO.read(riverMapFile);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (biomeMap == null) {
+        if (biomeImage == null) {
             plugin.getLogger().severe(prefix + "BiomeMap was not found! " +
                     "Place a biomeMap-File to /plugins/BitmapGeneratorPlugin/" + worldName + "/" + getBiomeMapName() +
                     "! Then rerun the command");
             return false;
         }
-        if (heightMap == null) {
+        if (heightImage == null) {
             plugin.getLogger().severe(prefix + "HeightMap was not found! " +
                     "Place a heightMap-File to /plugins/BitmapGeneratorPlugin/" + worldName + "/" + getHeightMapName() +
                     "! Then rerun the command");
             return false;
         }
-        if (biomeMap.getWidth() != heightMap.getWidth()) {
+        if (biomeImage.getWidth() != heightImage.getWidth()) {
             plugin.getLogger().severe(prefix + "BiomeMap width does not equal HeightMap width! " +
                     "Adjust the images, then rerun the command");
             return false;
         }
-        if (biomeMap.getHeight() != heightMap.getHeight()) {
+        if (biomeImage.getHeight() != heightImage.getHeight()) {
             plugin.getLogger().severe(prefix + "BiomeMap height does not equal HeightMap height! " +
                     "Adjust the images, then rerun the command");
             return false;
         }
 
         // Load biomes from the world.yml config file
-        plugin.getLogger().info(prefix + "Loading biomes...");
+        plugin.getLogger().info(prefix + "Loading biome definitions...");
         biomes = loadBiomeDefinition();
         plugin.getLogger().info(prefix + biomes.size() + " biomes were loaded!");
 
         // Find all colors used in the biome map file
-        plugin.getLogger().info(prefix + "Checking biome validity...");
+        plugin.getLogger().info(prefix + "Loading biomes from image...");
         Set<Integer> rgbValues = new HashSet<>();
-        for (int x = 0; x < biomeMap.getWidth(); x++) {
-            for (int y = 0; y < biomeMap.getHeight(); y++) {
-                rgbValues.add(biomeMap.getRGB(x, y));
+        biomeMap = new BiomeDefinition[biomeImage.getWidth()][biomeImage.getHeight()];
+        for (int x = 0; x < biomeImage.getWidth(); x++) {
+            if (x % 1000 == 0) {
+                plugin.getLogger().info((int) (((double) x / biomeImage.getWidth()) * 100) + "%...") ;
+            }
+            for (int y = 0; y < biomeImage.getHeight(); y++) {
+                int rgb = biomeImage.getRGB(x, y);
+                biomeMap[x][y] = biomes.get(rgb);
+                rgbValues.add(rgb);
             }
         }
+        plugin.getLogger().info("Done!") ;
 
+        plugin.getLogger().info(prefix + "Checking biome validity...");
         // try to match all found colors with their biomes
-        plugin.getLogger().info(prefix + "Colors found: ");
         boolean valid = true;
         for (Integer rgbValue : rgbValues) {
             Color color = new Color(rgbValue);
@@ -311,8 +320,36 @@ public class WorldConfiguration {
             return false;
         } else {
             plugin.getLogger().info(prefix + "All colors found could be assigned to a biome!");
-            return true;
         }
+
+        plugin.getLogger().info(prefix + "Loading height from image...");
+        heightMap = new Integer[heightImage.getWidth()][heightImage.getHeight()];
+        for (int x = 0; x < heightImage.getWidth(); x++) {
+            if (x % 1000 == 0) {
+                plugin.getLogger().info((int) (((double) x / heightImage.getWidth()) * 100) + "%...") ;
+            }
+            for (int y = 0; y < heightImage.getHeight(); y++) {
+                heightMap[x][y] = (heightImage.getRGB(x, y) >> 16) & 0x000000FF;
+            }
+        }
+        plugin.getLogger().info("Done!") ;
+
+        if (riverImage != null) {
+            plugin.getLogger().info(prefix + "Loading river depths from image...");
+            riverMap = new Integer[riverImage.getWidth()][riverImage.getHeight()];
+            double depthMod = 255.0 / riverDepth;
+            for (int x = 0; x < riverImage.getWidth(); x++) {
+                if (x % 1000 == 0) {
+                    plugin.getLogger().info((int) (((double) x / riverImage.getWidth()) * 100) + "%...") ;
+                }
+                for (int y = 0; y < riverImage.getHeight(); y++) {
+                    riverMap[x][y] = (int) (((riverImage.getRGB(x, y) >>> 24) & 0x000000FF) / depthMod);
+                }
+            }
+            plugin.getLogger().info("Done!") ;
+        }
+
+        return true;
     }
 
     /**
@@ -446,10 +483,6 @@ public class WorldConfiguration {
         }
     }
 
-    public BufferedImage getBiomeMap() {
-        return biomeMap;
-    }
-
     /**
      * returns the file name of the height map
      *
@@ -494,10 +527,10 @@ public class WorldConfiguration {
      * @return the biome defined by the biomeMap at the given point
      */
     public BiomeDefinition getBiomeDefinition(int blockX, int blockZ) {
-        int imageX = addOffset(blockX,  heightMap.getWidth());
-        int imageZ = addOffset(blockZ,  heightMap.getHeight());
+        int imageX = addOffset(blockX,  biomeMap.length);
+        int imageZ = addOffset(blockZ,  biomeMap[0].length);
 
-        return biomes.get(biomeMap.getRGB(imageX, imageZ));
+        return biomeMap[imageX][imageZ];
     }
 
     /**
@@ -508,10 +541,10 @@ public class WorldConfiguration {
      * @return the height of the location referenced in the height map
      */
     public int getHeight(int blockX, int blockZ) {
-        int imageX = addOffset(blockX,  heightMap.getWidth());
-        int imageZ = addOffset(blockZ,  heightMap.getHeight());
+        int imageX = addOffset(blockX,  heightMap.length);
+        int imageZ = addOffset(blockZ,  heightMap[0].length);
 
-        return (heightMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
+        return heightMap[imageX][imageZ];
     }
 
     /**
@@ -525,18 +558,24 @@ public class WorldConfiguration {
         if (riverMap == null) {
             return 0;
         }
-        int imageX = addOffset(blockX,  riverMap.getWidth());
-        int imageZ = addOffset(blockZ,  riverMap.getHeight());
+        int imageX = addOffset(blockX,  riverMap.length);
+        int imageZ = addOffset(blockZ,  riverMap[0].length);
 
-        return (int) ((((riverMap.getRGB(imageX, imageZ) >>> 24) & 0x000000FF) / 255.0) * riverDepth);
+        return riverMap[imageX][imageZ];
     }
 
     private int addOffset(int number, int size) {
+        return addOffset(number, size, true);
+    }
+
+    private int addOffset(int number, int size, boolean confine) {
         int result = size / 2 + number;
-        if (result < 0) {
-            result = 0;
-        } else if (result >= size) {
-            result = size - 1;
+        if (confine) {
+            if (result < 0) {
+                result = 0;
+            } else if (result >= size) {
+                result = size - 1;
+            }
         }
         return result;
     }
@@ -549,11 +588,8 @@ public class WorldConfiguration {
      * @return the y coordinate of a cave at a location
      */
     public int getCaveHeight(int blockX, int blockZ) {
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
+        int imageX = addOffset(blockX, biomeMap.length, false);
+        int imageZ = addOffset(blockX, biomeMap[0].length, false);
 
         double val = noiseHeight.noise(imageX / noise, imageZ / noise, 0);
 
@@ -568,11 +604,8 @@ public class WorldConfiguration {
      * @return true or false
      */
     public boolean isCave(int blockX, int blockZ) {
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
+        int imageX = addOffset(blockX, biomeMap.length, false);
+        int imageZ = addOffset(blockX, biomeMap[0].length, false);
 
         double val = noiseMap.noise(imageX / noise, 60 / noise, imageZ / noise);
 
@@ -580,11 +613,8 @@ public class WorldConfiguration {
     }
 
     public byte getSnowHeight(int snowX, int snowZ) {
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = snowX + offsetX;
-        int imageZ = snowZ + offsetZ;
+        int imageX = addOffset(snowX, biomeMap.length, false);
+        int imageZ = addOffset(snowZ, biomeMap[0].length, false);
 
         double val = snowHeight.noise(imageX / snowNoise, imageZ / snowNoise, 0);
 
