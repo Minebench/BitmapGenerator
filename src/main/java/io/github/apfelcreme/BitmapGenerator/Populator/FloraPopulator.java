@@ -34,12 +34,10 @@ import java.util.Random;
  */
 public class FloraPopulator extends BlockPopulator {
 
-    private final BufferedImage biomeMap;
     private WorldConfiguration worldConfiguration;
 
     public FloraPopulator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
 

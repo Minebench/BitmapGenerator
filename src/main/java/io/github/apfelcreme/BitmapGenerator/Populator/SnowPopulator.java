@@ -34,11 +34,9 @@ import java.util.Random;
 public class SnowPopulator extends BlockPopulator {
 
     private WorldConfiguration worldConfiguration;
-    private final BufferedImage biomeMap;
 
     public SnowPopulator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override

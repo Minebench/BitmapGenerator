@@ -30,12 +30,10 @@ import java.util.Random;
  */
 public class CavePopulator extends BlockPopulator {
 
-    private final BufferedImage biomeMap;
     private WorldConfiguration worldConfiguration;
 
     public CavePopulator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
