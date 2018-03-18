@@ -1,0 +1,175 @@
+r: 43
+g: 123
+b: 63
+blocks:
+  DIRT:
+    block: 3
+    data: 0
+    chance: 0.2
+  COARSEDIRT:
+    block: 3
+    data: 1
+    chance: 0.2
+  PODSOL:
+    block: 3
+    data: 2
+    chance: 0.25
+  GRAVEL:
+    block: 13
+    data: 0
+    chance: 0.1
+  GRASS:
+    block: 2
+    data: 0
+    chance: 0.4
+  STONE:
+    block: 1
+    data: 0
+    chance: 0.1
+biome: TAIGA
+surfaceLayerHeight: 4
+snow: false
+floraChance: 70.0
+floraTypes:
+  grass:
+    block: 31
+    data: 1
+    chance: 0.4
+  farn:
+    block: 31
+    data: 2
+    chance: 0.4
+treeChance: 0.0
+treeTypes: null
+schematicChance: 6.0
+schematics:
+  1:
+    fileName: '__tanne_s1.schematic'
+    yOffset: -2
+    chance: 0.1
+  2:
+    fileName: '__tanne_s2.schematic'
+    yOffset: -2
+    chance: 0.1
+  3:
+    fileName: '__tanne_s3.schematic'
+    yOffset: -2
+    chance: 0.1
+  4:
+    fileName: '__tanne_s4.schematic'
+    yOffset: -2
+    chance: 0.1
+  5:
+    fileName: '__tanne_s5.schematic'
+    yOffset: -2
+    chance: 0.1
+  6:
+    fileName: '__tanne_s6.schematic'
+    yOffset: -2
+    chance: 0.1
+  7:
+    fileName: '__tanne_s7.schematic'
+    yOffset: -2
+    chance: 0.1
+  8:
+    fileName: '__tanne_s8.schematic'
+    yOffset: -2
+    chance: 0.1
+  9:
+    fileName: '__tanne_s9.schematic'
+    yOffset: -2
+    chance: 0.1
+  10:
+    fileName: '__tanne_m1.schematic'
+    yOffset: -2
+    chance: 0.06
+  11:
+    fileName: '__tanne_m2.schematic'
+    yOffset: -2
+    chance: 0.06
+  11:
+    fileName: '__tanne_m3.schematic'
+    yOffset: -2
+    chance: 0.06
+  12:
+    fileName: '__tanne_m4.schematic'
+    yOffset: -2
+    chance: 0.06
+  13:
+    fileName: '__tanne_m5.schematic'
+    yOffset: -2
+    chance: 0.06
+  14:
+    fileName: '__tanne_m6.schematic'
+    yOffset: -2
+    chance: 0.06
+  15:
+    fileName: '__tanne_m7.schematic'
+    yOffset: -2
+    chance: 0.06
+  16:
+    fileName: '__tanne_m8.schematic'
+    yOffset: -2
+    chance: 0.06
+  17:
+    fileName: '__tanne_g1.schematic'
+    yOffset: -2
+    chance: 0.03
+  18:
+    fileName: '__tanne_g2.schematic'
+    yOffset: -2
+    chance: 0.03
+  19:
+    fileName: '__tanne_g3.schematic'
+    yOffset: -2
+    chance: 0.03
+veinChance: 9.0
+veinTypes:
+  diamond:
+    block: 56
+    data: 0
+    chance: 0.01
+    length: 2
+    stroke: 1
+  gold:
+    block: 14
+    data: 0
+    chance: 0.07
+    length: 2
+    stroke: 2
+  iron:
+    block: 15
+    data: 0
+    chance: 0.2
+    length: 3
+    stroke: 2
+  coal:
+    block: 16
+    data: 0
+    chance: 0.25
+    length: 3
+    stroke: 3
+  redstone:
+    block: 73
+    data: 0
+    chance: 0.01
+    length: 3
+    stroke: 2
+  granite:
+    block: 1
+    data: 1
+    chance: 0.1
+    length: 3
+    stroke: 2
+  diorite:
+    block: 1
+    data: 3
+    chance: 0.1
+    length: 3
+    stroke: 2
+  andesite:
+    block: 1
+    data: 5
+    chance: 0.1
+    length: 3
+    stroke: 2
