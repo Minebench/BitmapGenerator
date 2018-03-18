@@ -30,50 +30,18 @@ schematics: null
 veinChance: 11.0
 veinTypes:
   diamond:
-    block: 56
-    data: 0
-    chance: 0.02
-    length: 2
-    stroke: 1
+    chance: 0.01
   gold:
-    block: 14
-    data: 0
     chance: 0.05
-    length: 2
-    stroke: 2
   iron:
-    block: 15
-    data: 0
     chance: 0.1
-    length: 3
-    stroke: 2
   coal:
-    block: 16
-    data: 0
     chance: 0.15
-    length: 3
-    stroke: 3
   redstone:
-    block: 73
-    data: 0
     chance: 0.04
-    length: 3
-    stroke: 2
   granite:
-    block: 1
-    data: 1
     chance: 0.05
-    length: 3
-    stroke: 2
   diorite:
-    block: 1
-    data: 3
     chance: 0.05
-    length: 3
-    stroke: 2
   andesite:
-    block: 1
-    data: 5
     chance: 0.05
-    length: 3
-    stroke: 2

@@ -1,23 +1,34 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import com.sk89q.worldedit.CuboidClipboard;
-import com.sk89q.worldedit.schematic.SchematicFormat;
+import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import com.sk89q.worldedit.util.io.Closer;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.material.MaterialData;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.security.CodeSource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -44,13 +55,15 @@ public class WorldConfiguration {
 
     private BitmapGeneratorPlugin plugin;
     private String worldName;
+    private File worldFolder;
     private List<File> biomeFiles;
-    private List<BiomeDefinition> biomes;
+    private Map<Integer, BiomeDefinition> biomes;
     private String prefix;
 
     private YamlConfiguration worldConfig;
-    private BufferedImage biomeMap = null;
-    private BufferedImage heightMap = null;
+    private BiomeDefinition[][] biomeMap = null;
+    private Integer[][] heightMap = null;
+    private Integer[][] riverMap = null;
 
     private double caveRadius;
     private double noise;
@@ -59,6 +72,9 @@ public class WorldConfiguration {
     private Perlin noiseHeight;
     private Perlin noiseMap;
     private Perlin snowHeight;
+    private int waterHeight;
+    private int riverDepth;
+    private World world;
 
     /**
      * creates a new instance if all is fine, or null if an error occurs during the loading process
@@ -97,26 +113,28 @@ public class WorldConfiguration {
     private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed, long snowSeed) {
         this.plugin = plugin;
         this.worldName = worldName;
+
+        this.worldFolder = new File(plugin.getDataFolder(), worldName);
         this.prefix = "[" + worldName + "] ";
         this.biomeFiles = new ArrayList<>();
         try {
 
             //extract all resources if they dont exist yet (world.yml, all biome.yml-files and all schematics)
             Util.saveResource(plugin, "world.yml", worldName);
-            worldConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+            worldConfig = YamlConfiguration.loadConfiguration(new File(worldFolder, "world.yml"));
 
             // Load the world seeds and initiate the Perlin-Noise for cave generation
             if (worldConfig.get("caveSeed") == null) {
                 worldConfig.set("caveSeed", caveSeed);
-                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+                worldConfig.save(new File(worldFolder, "world.yml"));
             }
             if (worldConfig.get("heightSeed") == null) {
                 worldConfig.set("heightSeed", heightSeed);
-                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+                worldConfig.save(new File(worldFolder, "world.yml"));
             }
             if (worldConfig.get("snowSeed") == null) {
                 worldConfig.set("snowSeed", snowSeed);
-                worldConfig.save(new File(plugin.getDataFolder() + "/" + worldName + "/world.yml"));
+                worldConfig.save(new File(worldFolder, "world.yml"));
             }
             caveSeed = worldConfig.getLong("caveSeed");
             heightSeed = worldConfig.getLong("heightSeed");
@@ -124,6 +142,8 @@ public class WorldConfiguration {
             this.caveRadius = worldConfig.getDouble("caveRadius", 3.9d);
             this.noise = worldConfig.getDouble("noise", 48);
             this.snowNoise = worldConfig.getDouble("snowNoise", 24);
+            this.waterHeight = worldConfig.getInt("waterHeight");
+            this.riverDepth = worldConfig.getInt("riverDepth", 4);
             this.noiseMap = new Perlin(caveSeed);
             this.noiseHeight = new Perlin(heightSeed);
             this.snowHeight = new Perlin(snowSeed);
@@ -131,11 +151,11 @@ public class WorldConfiguration {
             plugin.getLogger().info("Cave-Generation: " + caveSeed + ", Cave-Height: " + heightSeed + ", Snow-Height: " + snowSeed);
 
             // create some directories
-            if (!new File(plugin.getDataFolder() + "/" + worldName + "/schematics").exists()) {
-                new File(plugin.getDataFolder() + "/" + worldName + "/schematics").mkdirs();
+            if (!new File(worldFolder, "schematics").exists()) {
+                new File(worldFolder, "schematics").mkdirs();
             }
-            if (!new File(plugin.getDataFolder() + "/" + worldName + "/biomes").exists()) {
-                new File(plugin.getDataFolder() + "/" + worldName + "/biomes").mkdirs();
+            if (!new File(worldFolder, "biomes").exists()) {
+                new File(worldFolder, "biomes").mkdirs();
             }
 
             // extract the biome files
@@ -149,7 +169,7 @@ public class WorldConfiguration {
             }
 
 
-            File folder = new File(plugin.getDataFolder() + "/" + worldName + "/biomes");
+            File folder = new File(worldFolder, "biomes");
             if (folder.exists() && folder.isDirectory()) {
                 Collections.addAll(biomeFiles, folder.listFiles());
             }
@@ -216,69 +236,77 @@ public class WorldConfiguration {
      */
     private boolean loadBiomes() {
         plugin.getLogger().info(prefix + "Loading Biome-Map...");
+        BufferedImage biomeImage = null;
+        BufferedImage heightImage = null;
+        BufferedImage riverImage = null;
         try {
-            File biomeMapFile = new File(plugin.getDataFolder() + "/" + worldName + "/" + getBiomeMapName());
+            File biomeMapFile = new File(worldFolder, getBiomeMapName());
             if (biomeMapFile.exists()) {
-                biomeMap = ImageIO.read(biomeMapFile);
-                File heightMapFile = new File(plugin.getDataFolder() + "/" + worldName + "/" + getHeightMapName());
+                biomeImage = ImageIO.read(biomeMapFile);
+                File heightMapFile = new File(worldFolder, getHeightMapName());
                 if (heightMapFile.exists()) {
                     plugin.getLogger().info(prefix + "Loading Height-Map...");
-                    heightMap = ImageIO.read(heightMapFile);
+                    heightImage = ImageIO.read(heightMapFile);
+                }
+                File riverMapFile = new File(worldFolder, getRiverMapName());
+                if (riverMapFile.exists()) {
+                    plugin.getLogger().info(prefix + "Loading River-Map...");
+                    riverImage = ImageIO.read(riverMapFile);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (biomeMap == null) {
+        if (biomeImage == null) {
             plugin.getLogger().severe(prefix + "BiomeMap was not found! " +
                     "Place a biomeMap-File to /plugins/BitmapGeneratorPlugin/" + worldName + "/" + getBiomeMapName() +
                     "! Then rerun the command");
             return false;
         }
-        if (heightMap == null) {
+        if (heightImage == null) {
             plugin.getLogger().severe(prefix + "HeightMap was not found! " +
                     "Place a heightMap-File to /plugins/BitmapGeneratorPlugin/" + worldName + "/" + getHeightMapName() +
                     "! Then rerun the command");
             return false;
         }
-        if (biomeMap.getWidth() != heightMap.getWidth()) {
+        if (biomeImage.getWidth() != heightImage.getWidth()) {
             plugin.getLogger().severe(prefix + "BiomeMap width does not equal HeightMap width! " +
                     "Adjust the images, then rerun the command");
             return false;
         }
-        if (biomeMap.getHeight() != heightMap.getHeight()) {
+        if (biomeImage.getHeight() != heightImage.getHeight()) {
             plugin.getLogger().severe(prefix + "BiomeMap height does not equal HeightMap height! " +
                     "Adjust the images, then rerun the command");
             return false;
         }
 
         // Load biomes from the world.yml config file
-        plugin.getLogger().info(prefix + "Loading biomes...");
+        plugin.getLogger().info(prefix + "Loading biome definitions...");
         biomes = loadBiomeDefinition();
         plugin.getLogger().info(prefix + biomes.size() + " biomes were loaded!");
 
         // Find all colors used in the biome map file
-        plugin.getLogger().info(prefix + "Checking biome validity...");
+        plugin.getLogger().info(prefix + "Loading biomes from image...");
         Set<Integer> rgbValues = new HashSet<>();
-        for (int x = 0; x < biomeMap.getWidth(); x++) {
-            for (int y = 0; y < biomeMap.getHeight(); y++) {
-                rgbValues.add(biomeMap.getRGB(x, y));
+        biomeMap = new BiomeDefinition[biomeImage.getWidth()][biomeImage.getHeight()];
+        for (int x = 0; x < biomeImage.getWidth(); x++) {
+            if (x % 1000 == 0) {
+                plugin.getLogger().info((int) (((double) x / biomeImage.getWidth()) * 100) + "%...") ;
+            }
+            for (int y = 0; y < biomeImage.getHeight(); y++) {
+                int rgb = biomeImage.getRGB(x, y);
+                biomeMap[x][y] = biomes.get(rgb);
+                rgbValues.add(rgb);
             }
         }
+        plugin.getLogger().info("Done!") ;
 
+        plugin.getLogger().info(prefix + "Checking biome validity...");
         // try to match all found colors with their biomes
-        plugin.getLogger().info(prefix + "Colors found: ");
         boolean valid = true;
         for (Integer rgbValue : rgbValues) {
             Color color = new Color(rgbValue);
-            BiomeDefinition foundBiome = null;
-            for (BiomeDefinition biomeDefinition : biomes) {
-                if (biomeDefinition.getR() == color.getRed()
-                        && biomeDefinition.getG() == color.getGreen()
-                        && biomeDefinition.getB() == color.getBlue()) {
-                    foundBiome = biomeDefinition;
-                }
-            }
+            BiomeDefinition foundBiome = biomes.get(color.getRGB());
             if (foundBiome != null) {
                 plugin.getLogger().info(prefix + " [" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "] -> " + foundBiome.getName());
             } else {
@@ -292,8 +320,36 @@ public class WorldConfiguration {
             return false;
         } else {
             plugin.getLogger().info(prefix + "All colors found could be assigned to a biome!");
-            return true;
         }
+
+        plugin.getLogger().info(prefix + "Loading height from image...");
+        heightMap = new Integer[heightImage.getWidth()][heightImage.getHeight()];
+        for (int x = 0; x < heightImage.getWidth(); x++) {
+            if (x % 1000 == 0) {
+                plugin.getLogger().info((int) (((double) x / heightImage.getWidth()) * 100) + "%...") ;
+            }
+            for (int y = 0; y < heightImage.getHeight(); y++) {
+                heightMap[x][y] = (heightImage.getRGB(x, y) >> 16) & 0x000000FF;
+            }
+        }
+        plugin.getLogger().info("Done!") ;
+
+        if (riverImage != null) {
+            plugin.getLogger().info(prefix + "Loading river depths from image...");
+            riverMap = new Integer[riverImage.getWidth()][riverImage.getHeight()];
+            double depthMod = 255.0 / riverDepth;
+            for (int x = 0; x < riverImage.getWidth(); x++) {
+                if (x % 1000 == 0) {
+                    plugin.getLogger().info((int) (((double) x / riverImage.getWidth()) * 100) + "%...") ;
+                }
+                for (int y = 0; y < riverImage.getHeight(); y++) {
+                    riverMap[x][y] = (int) (((riverImage.getRGB(x, y) >>> 24) & 0x000000FF) / depthMod);
+                }
+            }
+            plugin.getLogger().info("Done!") ;
+        }
+
+        return true;
     }
 
     /**
@@ -310,8 +366,8 @@ public class WorldConfiguration {
      *
      * @return a list of all biomes
      */
-    public List<BiomeDefinition> loadBiomeDefinition() {
-        List<BiomeDefinition> biomes = new ArrayList<>();
+    public Map<Integer, BiomeDefinition> loadBiomeDefinition() {
+        Map<Integer, BiomeDefinition> biomes = new HashMap<>();
         for (File biomeFile : biomeFiles) {
             String biomeName = biomeFile.getName().replace(".yml", "");
             YamlConfiguration biomeConfig = YamlConfiguration.loadConfiguration(biomeFile);
@@ -354,12 +410,13 @@ public class WorldConfiguration {
             List<BiomeDefinition.OreVein> veinTypes = new ArrayList<>();
             if (biomeConfig.get("veinTypes") != null) {
                 for (String veinName : biomeConfig.getConfigurationSection("veinTypes").getKeys(false)) {
-                    Material block = Material.getMaterial(biomeConfig.getInt("veinTypes." + veinName + ".block"));
-                    byte data = (byte) biomeConfig.getInt("veinTypes." + veinName + ".data");
-                    double chance = biomeConfig.getDouble("veinTypes." + veinName + ".chance");
-                    int length = biomeConfig.getInt("veinTypes." + veinName + ".length");
-                    int stroke = biomeConfig.getInt("veinTypes." + veinName + ".stroke");
-                    veinTypes.add(new BiomeDefinition.OreVein(new MaterialData(block, data), chance, length, stroke));
+                    Material block = Material.getMaterial(biomeConfig.getInt("veinTypes." + veinName + ".block", worldConfig.getInt("veinTypes." + veinName + ".block")));
+                    byte data = (byte) biomeConfig.getInt("veinTypes." + veinName + ".data", worldConfig.getInt("veinTypes." + veinName + ".data"));
+                    double chance = biomeConfig.getDouble("veinTypes." + veinName + ".chance", worldConfig.getInt("veinTypes." + veinName + ".chance"));
+                    int length = biomeConfig.getInt("veinTypes." + veinName + ".length", worldConfig.getInt("veinTypes." + veinName + ".length"));
+                    int stroke = biomeConfig.getInt("veinTypes." + veinName + ".stroke", worldConfig.getInt("veinTypes." + veinName + ".stroke"));
+                    int maxHeight = biomeConfig.getInt("veinTypes." + veinName + ".max-height", worldConfig.getInt("veinTypes." + veinName + ".max-height", 255));
+                    veinTypes.add(new BiomeDefinition.OreVein(new MaterialData(block, data), chance, length, stroke, maxHeight));
                 }
             }
             double schematicCount = biomeConfig.getDouble("schematicChance");
@@ -384,7 +441,7 @@ public class WorldConfiguration {
                             treeCount, treeTypes,
                             veinCount, veinTypes,
                             schematicCount, schematics);
-            biomes.add(biomeDefinition);
+            biomes.put(biomeDefinition.getRGB(), biomeDefinition);
         }
         return biomes;
     }
@@ -395,7 +452,7 @@ public class WorldConfiguration {
      * @param filename a file name
      * @return the clipboard of the schematic
      */
-    public CuboidClipboard getSchematic(String filename) {
+    public Clipboard getSchematic(String filename) {
         if (filename == null || filename.isEmpty()) {
             return null;
         }
@@ -404,26 +461,26 @@ public class WorldConfiguration {
             filename += ".schematic";
         }
 
-        File file = new File(plugin.getDataFolder() + "/" + worldName + "/schematics/" + filename);
+        File file = new File(worldFolder, "schematics/" + filename);
         if (!file.exists()) {
             plugin.getLogger().log(Level.SEVERE, prefix + "No schematic found with the name " + filename + "!");
             return null;
         }
-        SchematicFormat schemFormat = SchematicFormat.getFormat(file);
+        ClipboardFormat schemFormat = ClipboardFormat.findByFile(file);
         if (schemFormat == null) {
             plugin.getLogger().log(Level.SEVERE, prefix + "Could not load schematic format from file " + file.getAbsolutePath() + "!");
             return null;
         }
+        Closer closer = Closer.create();
         try {
-            return schemFormat.load(file);
+            FileInputStream fis = closer.register(new FileInputStream(file));
+            BufferedInputStream bis = closer.register(new BufferedInputStream(fis));
+            ClipboardReader reader = schemFormat.getReader(bis);
+            return reader.read(BukkitUtil.getLocalWorld(world).getWorldData());
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, prefix + "Error loading file " + file.getAbsolutePath(), e);
             return null;
         }
-    }
-
-    public BufferedImage getBiomeMap() {
-        return biomeMap;
     }
 
     /**
@@ -445,12 +502,21 @@ public class WorldConfiguration {
     }
 
     /**
+     * returns the file name of the river map
+     *
+     * @return the file name of the river map
+     */
+    public String getRiverMapName() {
+        return worldConfig.getString("riverMap");
+    }
+
+    /**
      * returns the file name of the biome map
      *
      * @return the file name of the biome map
      */
     public int getWaterHeight() {
-        return worldConfig.getInt("waterHeight");
+        return waterHeight;
     }
 
     /**
@@ -461,22 +527,10 @@ public class WorldConfiguration {
      * @return the biome defined by the biomeMap at the given point
      */
     public BiomeDefinition getBiomeDefinition(int blockX, int blockZ) {
+        int imageX = addOffset(blockX,  biomeMap.length);
+        int imageZ = addOffset(blockZ,  biomeMap[0].length);
 
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
-
-        int biomeR = (biomeMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
-        int biomeG = (biomeMap.getRGB(imageX, imageZ) >> 8) & 0x000000FF;
-        int biomeB = (biomeMap.getRGB(imageX, imageZ)) & 0x000000FF;
-        for (BiomeDefinition biomeDefinition : biomes) {
-            if (biomeDefinition.getR() == biomeR && biomeDefinition.getG() == biomeG && biomeDefinition.getB() == biomeB) {
-                return biomeDefinition;
-            }
-        }
-        return null;
+        return biomeMap[imageX][imageZ];
     }
 
     /**
@@ -487,14 +541,43 @@ public class WorldConfiguration {
      * @return the height of the location referenced in the height map
      */
     public int getHeight(int blockX, int blockZ) {
+        int imageX = addOffset(blockX,  heightMap.length);
+        int imageZ = addOffset(blockZ,  heightMap[0].length);
 
-        int offsetX = ((heightMap.getWidth() / 2));
-        int offsetZ = ((heightMap.getHeight() / 2));
+        return heightMap[imageX][imageZ];
+    }
 
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
+    /**
+     * returns the river depth at a location
+     *
+     * @param blockX the x coordinate of the block
+     * @param blockZ the z coordinate of the block
+     * @return the river depth of the location referenced in the river depth map
+     */
+    public int getRiverDepth(int blockX, int blockZ) {
+        if (riverMap == null) {
+            return 0;
+        }
+        int imageX = addOffset(blockX,  riverMap.length);
+        int imageZ = addOffset(blockZ,  riverMap[0].length);
 
-        return (heightMap.getRGB(imageX, imageZ) >> 16) & 0x000000FF;
+        return riverMap[imageX][imageZ];
+    }
+
+    private int addOffset(int number, int size) {
+        return addOffset(number, size, true);
+    }
+
+    private int addOffset(int number, int size, boolean confine) {
+        int result = size / 2 + number;
+        if (confine) {
+            if (result < 0) {
+                result = 0;
+            } else if (result >= size) {
+                result = size - 1;
+            }
+        }
+        return result;
     }
 
     /**
@@ -505,11 +588,8 @@ public class WorldConfiguration {
      * @return the y coordinate of a cave at a location
      */
     public int getCaveHeight(int blockX, int blockZ) {
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
+        int imageX = addOffset(blockX, biomeMap.length, false);
+        int imageZ = addOffset(blockX, biomeMap[0].length, false);
 
         double val = noiseHeight.noise(imageX / noise, imageZ / noise, 0);
 
@@ -524,11 +604,8 @@ public class WorldConfiguration {
      * @return true or false
      */
     public boolean isCave(int blockX, int blockZ) {
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = blockX + offsetX;
-        int imageZ = blockZ + offsetZ;
+        int imageX = addOffset(blockX, biomeMap.length, false);
+        int imageZ = addOffset(blockX, biomeMap[0].length, false);
 
         double val = noiseMap.noise(imageX / noise, 60 / noise, imageZ / noise);
 
@@ -536,11 +613,8 @@ public class WorldConfiguration {
     }
 
     public byte getSnowHeight(int snowX, int snowZ) {
-        int offsetX = ((biomeMap.getWidth() / 2));
-        int offsetZ = ((biomeMap.getHeight() / 2));
-
-        int imageX = snowX + offsetX;
-        int imageZ = snowZ + offsetZ;
+        int imageX = addOffset(snowX, biomeMap.length, false);
+        int imageZ = addOffset(snowZ, biomeMap[0].length, false);
 
         double val = snowHeight.noise(imageX / snowNoise, imageZ / snowNoise, 0);
 
@@ -572,7 +646,7 @@ public class WorldConfiguration {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 BiomeDefinition biomeDefinition = getBiomeDefinition((chunk.getX() * 16) + x, (chunk.getZ() * 16) + z);
-                if (!biomeDefinitions.contains(biomeDefinition)) {
+                if (biomeDefinition != null && !biomeDefinitions.contains(biomeDefinition)) {
                     biomeDefinitions.add(biomeDefinition);
                 }
             }

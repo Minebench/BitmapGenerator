@@ -34,36 +34,26 @@ import java.util.Random;
 public class SnowPopulator extends BlockPopulator {
 
     private WorldConfiguration worldConfiguration;
-    private final BufferedImage biomeMap;
 
     public SnowPopulator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
-
-        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
-        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
-        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
-        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
-
-        if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-                if (biomeDefinition.isSnowfall()) {
-                    for (int x = 0; x < 16; x++) {
-                        for (int z = 0; z < 16; z++) {
-                            int snowX = (chunk.getX() << 4) + x;
-                            int snowZ = (chunk.getZ() << 4) + z;
-                            if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
-                                for (int y = worldConfiguration.getHeight(snowX, snowZ); y < 255; y++) {
-                                    Block block = world.getBlockAt(snowX, y, snowZ);
-                                    if (block.getType() == Material.AIR
-                                            && block.getRelative(BlockFace.DOWN).getType() != Material.SNOW
-                                            && block.getRelative(BlockFace.DOWN).getType() != Material.AIR) {
-                                        block.setTypeIdAndData(Material.SNOW.getId(), worldConfiguration.getSnowHeight(snowX, snowZ), true);
-                                    }
+        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
+            if (biomeDefinition.isSnowfall()) {
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        int snowX = (chunk.getX() << 4) + x;
+                        int snowZ = (chunk.getZ() << 4) + z;
+                        if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
+                            for (int y = worldConfiguration.getHeight(snowX, snowZ); y < 255; y++) {
+                                Block block = world.getBlockAt(snowX, y, snowZ);
+                                if (block.getType() == Material.AIR
+                                        && block.getRelative(BlockFace.DOWN).getType() != Material.SNOW
+                                        && block.getRelative(BlockFace.DOWN).getType() != Material.AIR) {
+                                    block.setTypeIdAndData(Material.SNOW.getId(), worldConfiguration.getSnowHeight(snowX, snowZ), true);
                                 }
                             }
                         }

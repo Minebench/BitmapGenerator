@@ -1,6 +1,6 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import com.sk89q.worldedit.CuboidClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import org.bukkit.TreeType;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -30,9 +30,7 @@ import java.util.Random;
 public class BiomeDefinition {
 
     private String name;
-    private int r;
-    private int g;
-    private int b;
+    private int rgb;
     private Biome biome;
     private int surfaceLayerHeight;
     private boolean snowfall;
@@ -52,9 +50,10 @@ public class BiomeDefinition {
                            List<TreeData> treeTypes, double veinChance, List<OreVein> veinTypes, double schematicChance,
                            List<Schematic> schematics) {
         this.name = name;
-        this.r = r;
-        this.g = g;
-        this.b = b;
+        this.rgb = (255 << 24)
+                | (r << 16)
+                | (g << 8)
+                | (b);
         this.biome = biome;
         this.surfaceLayerHeight = surfaceLayerHeight;
         this.snowfall = snowfall;
@@ -85,7 +84,7 @@ public class BiomeDefinition {
      * @return red
      */
     public int getR() {
-        return r;
+        return (rgb >> 16) & 0x000000FF;
     }
 
     /**
@@ -94,7 +93,7 @@ public class BiomeDefinition {
      * @return green
      */
     public int getG() {
-        return g;
+        return (rgb >> 8) & 0x000000FF;
     }
 
     /**
@@ -103,7 +102,16 @@ public class BiomeDefinition {
      * @return green
      */
     public int getB() {
-        return b;
+        return rgb & 0x000000FF;
+    }
+
+    /**
+     * Get the RGB in hexadecimal form
+     *
+     * @return The RGB in hexadecimal form
+     */
+    public int getRGB() {
+        return rgb;
     }
 
     /**
@@ -285,9 +293,7 @@ public class BiomeDefinition {
         while (sum < index) {
             sum = sum + (int) (schematics.get(i++).chance * 100);
         }
-        Schematic schematic = schematics.get(Math.max(0, i - 1));
-        schematic.getClipboard().rotate2D(random.nextInt(4) * 90);
-        return schematic;
+        return schematics.get(Math.max(0, i - 1));
     }
 
     @Override
@@ -348,12 +354,14 @@ public class BiomeDefinition {
         private double chance;
         private int length;
         private int stroke;
+        private int maxHeight;
 
-        public OreVein(MaterialData ore, double chance, int length, int stroke) {
+        public OreVein(MaterialData ore, double chance, int length, int stroke, int maxHeight) {
             this.ore = ore;
             this.chance = chance;
             this.length = length;
             this.stroke = stroke;
+            this.maxHeight = maxHeight;
         }
 
         public MaterialData getOre() {
@@ -368,9 +376,13 @@ public class BiomeDefinition {
             return stroke;
         }
 
+        public int getMaxHeight() {
+            return maxHeight;
+        }
+
         @Override
         public String toString() {
-            return ore.getItemType().name() + ":" + ore.getData() + "*" + chance;
+            return ore.getItemType().name() + ":" + ore.getData() + "*" + chance + "<" + maxHeight;
         }
     }
 
@@ -379,18 +391,18 @@ public class BiomeDefinition {
      */
     public static class Schematic {
         private String name;
-        private CuboidClipboard clipboard;
+        private Clipboard clipboard;
         private int yOffset;
         private double chance;
 
-        public Schematic(String name, CuboidClipboard clipboard, int yOffset, double chance) {
+        public Schematic(String name, Clipboard clipboard, int yOffset, double chance) {
             this.name = name;
             this.clipboard = clipboard;
             this.yOffset = yOffset;
             this.chance = chance;
         }
 
-        public CuboidClipboard getClipboard() {
+        public Clipboard getClipboard() {
             return clipboard;
         }
 

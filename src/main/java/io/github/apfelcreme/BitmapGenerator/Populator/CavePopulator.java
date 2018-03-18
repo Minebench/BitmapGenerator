@@ -30,43 +30,31 @@ import java.util.Random;
  */
 public class CavePopulator extends BlockPopulator {
 
-    private final BufferedImage biomeMap;
     private WorldConfiguration worldConfiguration;
 
     public CavePopulator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
     public void populate(World world, Random random, Chunk chunk) {
-
         double radius = worldConfiguration.getCaveRadius();
-
-        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
-        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
-        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
-        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
-
-        if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-
-            for (int x = 0; x < 16; x++) {
-                int coordX = (chunk.getX() << 4) + x;
-                for (int z = 0; z < 16; z++) {
-                    int coordZ = (chunk.getZ() << 4) + z;
-                    if (worldConfiguration.isCave(coordX, coordZ)) {
-                        int coordY = worldConfiguration.getCaveHeight(coordX, coordZ);
-                        if (coordY > 5) {
-                            Block block = world.getBlockAt(coordX, coordY, coordZ);
-                            if (block.getType() != Material.AIR ) {
-                                // TODO: make this somehow nicer :(
-                                for (int rX = (int) (coordX - radius); rX < coordX + radius; rX++) {
-                                    for (int rY = (int) (coordY - radius); rY < coordY + radius; rY++) {
-                                        for (int rZ = (int) (coordZ - radius); rZ < coordZ + radius; rZ++) {
-                                            if (block.getType() == Material.STONE
-                                                    && block.getLocation().distance(world.getBlockAt(rX, rY, rZ).getLocation()) <= radius) {
-                                                world.getBlockAt(rX, rY, rZ).setTypeIdAndData(Material.AIR.getId(), (byte) 0, false);
-                                            }
+        for (int x = 0; x < 16; x++) {
+            int coordX = (chunk.getX() << 4) + x;
+            for (int z = 0; z < 16; z++) {
+                int coordZ = (chunk.getZ() << 4) + z;
+                if (worldConfiguration.isCave(coordX, coordZ)) {
+                    int coordY = worldConfiguration.getCaveHeight(coordX, coordZ);
+                    if (coordY > 5) {
+                        Block block = world.getBlockAt(coordX, coordY, coordZ);
+                        if (block.getType() != Material.AIR ) {
+                            // TODO: make this somehow nicer :(
+                            for (int rX = (int) (coordX - radius); rX < coordX + radius; rX++) {
+                                for (int rY = (int) (coordY - radius); rY < coordY + radius; rY++) {
+                                    for (int rZ = (int) (coordZ - radius); rZ < coordZ + radius; rZ++) {
+                                        if (block.getType() == Material.STONE
+                                                && block.getLocation().distance(world.getBlockAt(rX, rY, rZ).getLocation()) <= radius) {
+                                            world.getBlockAt(rX, rY, rZ).setTypeIdAndData(Material.AIR.getId(), (byte) 0, false);
                                         }
                                     }
                                 }

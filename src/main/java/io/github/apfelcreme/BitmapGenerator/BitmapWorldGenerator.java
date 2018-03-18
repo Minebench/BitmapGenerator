@@ -1,8 +1,10 @@
 package io.github.apfelcreme.BitmapGenerator;
 
 import io.github.apfelcreme.BitmapGenerator.Populator.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.material.MaterialData;
@@ -33,60 +35,60 @@ import java.util.Random;
 public class BitmapWorldGenerator extends ChunkGenerator {
 
     private WorldConfiguration worldConfiguration;
-    private BufferedImage biomeMap;
 
     public BitmapWorldGenerator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
     public synchronized ChunkData generateChunkData(World world, Random random, int x, int z, BiomeGrid biome) {
         ChunkData data = createChunkData(world);
-        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
-        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
-        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
-        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
 
-        if (x >= minChunkX && x <= maxChunkX && z >= minChunkZ && z <= maxChunkZ) {
-            for (int cX = 0; cX < 16; cX++) {
-                for (int cZ = 0; cZ < 16; cZ++) {
-                    int imageCoordX = x * 16 + cX;
-                    int imageCoordZ = z * 16 + cZ;
-                    BiomeDefinition biomeDefinition = worldConfiguration.getBiomeDefinition(imageCoordX, imageCoordZ);
-                    if (biomeDefinition != null) {
-                        biome.setBiome(cX, cZ, biomeDefinition.getBiome());
-                        data.setBlock(cX, 0, cZ, Material.BEDROCK);
-                        for (int cY = 1; cY < 256; cY++) {
-                            int heighestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
+        for (int cX = 0; cX < 16; cX++) {
+            for (int cZ = 0; cZ < 16; cZ++) {
+                int imageCoordX = x * 16 + cX;
+                int imageCoordZ = z * 16 + cZ;
+                BiomeDefinition biomeDefinition = worldConfiguration.getBiomeDefinition(imageCoordX, imageCoordZ);
+                if (biomeDefinition != null) {
+                    biome.setBiome(cX, cZ, biomeDefinition.getBiome());
+                    data.setBlock(cX, 0, cZ, Material.BEDROCK);
+                    int highestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
+                    int riverDepth = worldConfiguration.getRiverDepth(imageCoordX, imageCoordZ);
+                    for (int cY = 1; cY <= Math.max(highestBlock, worldConfiguration.getWaterHeight()); cY++) {
 
+                        if (riverDepth > 0 && cY <= highestBlock && cY > highestBlock - riverDepth) {
+                            // fill with water (if there is a river)
+                            if (biomeDefinition.getBiome() != Biome.FROZEN_RIVER && biomeDefinition.getBiome() != Biome.RIVER) {
+                                biome.setBiome(cX, cZ, Biome.RIVER);
+                            }
+                            if (cY < highestBlock) { // Make river water one block below surface
+                                data.setBlock(cX, cY, cZ, Material.WATER);
+                            }
+                        } else {
                             // fill with the destined block
-                            if (cY <= heighestBlock && cY > (heighestBlock - biomeDefinition.getSurfaceLayerHeight())) {
+                            if (cY <= highestBlock && cY > (highestBlock - biomeDefinition.getSurfaceLayerHeight())) {
                                 // surface layer
                                 data.setBlock(cX, cY, cZ, biomeDefinition.nextBlock());
-                            } else if (cY <= (heighestBlock - biomeDefinition.getSurfaceLayerHeight())) {
+                            } else if (cY <= (highestBlock - biomeDefinition.getSurfaceLayerHeight())) {
                                 // everything under the surface layer, ores and caves will be populated later
                                 data.setBlock(cX, cY, cZ, Material.STONE);
                             }
+                        }
 
-                            // Fill everything under the waterHeight-level with water
-                            if ((data.getType(cX, cY, cZ) == null || data.getType(cX, cY, cZ) == Material.AIR)
-                                    && cY <= worldConfiguration.getWaterHeight()) {
-                                data.setBlock(cX, cY, cZ, new MaterialData(Material.WATER));
-                            }
+                        // Fill everything under the waterHeight-level with water
+                        if ((data.getType(cX, cY, cZ) == null || data.getType(cX, cY, cZ) == Material.AIR)
+                                && cY <= worldConfiguration.getWaterHeight()) {
+                            data.setBlock(cX, cY, cZ, new MaterialData(Material.WATER));
                         }
                     }
-                }
-            }
-        } else {
-            // No image-data for this chunk: fill with water
-            for (int cX = 0; cX < 16; cX++) {
-                for (int cZ = 0; cZ < 16; cZ++) {
+                } else {
+                    // No image-data for this chunk: fill with water
                     data.setBlock(cX, 0, cZ, Material.BEDROCK);
-                    for (int cY = 1; cY <= 60; cY++) {
+                    for (int cY = 1; cY <= worldConfiguration.getWaterHeight(); cY++) {
                         data.setBlock(cX, cY, cZ, Material.WATER);
                     }
                 }
+
             }
         }
         return data;

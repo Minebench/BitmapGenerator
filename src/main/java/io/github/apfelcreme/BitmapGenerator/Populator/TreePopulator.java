@@ -5,9 +5,7 @@ import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.TreeType;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
 import org.bukkit.generator.BlockPopulator;
 
 import java.awt.image.BufferedImage;
@@ -33,40 +31,30 @@ import java.util.Random;
  */
 public class TreePopulator extends BlockPopulator {
 
-    private final BufferedImage biomeMap;
     private WorldConfiguration worldConfiguration;
 
     public TreePopulator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
-        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
-        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
-        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
-        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
-
-        if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-                double treeCount;
-                if (biomeDefinition.getTreeChance() < 1) {
-                    treeCount = Math.random() <= biomeDefinition.getTreeChance() ? 1 : 0;
-                } else {
-                    treeCount = (int) biomeDefinition.getTreeChance();
-                }
-                for (int i = 0; i < treeCount; i++) {
-                    int treeX = (chunk.getX() << 4) + random.nextInt(16);
-                    int treeZ = (chunk.getZ() << 4) + random.nextInt(16);
-                    int treeY = Util.getHighestBlock(world, treeX, treeZ) + 1;
-                    if (biomeDefinition.isGroundBlock(world.getBlockAt(treeX, treeY - 1, treeZ))) {
-                        if (worldConfiguration.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
-                            BiomeDefinition.TreeData treeData = biomeDefinition.nextTree();
-                            if (treeData != null) {
-                                CraftWorld craftWorld = ((CraftWorld) world).getHandle().getWorld();
-                                craftWorld.generateTree(new Location(world, treeX, treeY, treeZ), treeData.getType());
-                            }
+        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
+            double treeCount;
+            if (biomeDefinition.getTreeChance() < 1) {
+                treeCount = Math.random() <= biomeDefinition.getTreeChance() ? 1 : 0;
+            } else {
+                treeCount = (int) biomeDefinition.getTreeChance();
+            }
+            for (int i = 0; i < treeCount; i++) {
+                int treeX = (chunk.getX() << 4) + random.nextInt(16);
+                int treeZ = (chunk.getZ() << 4) + random.nextInt(16);
+                int treeY = Util.getHighestBlock(world, treeX, treeZ) + 1;
+                if (biomeDefinition.isGroundBlock(world.getBlockAt(treeX, treeY - 1, treeZ))) {
+                    if (worldConfiguration.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
+                        BiomeDefinition.TreeData treeData = biomeDefinition.nextTree();
+                        if (treeData != null) {
+                            world.generateTree(new Location(world, treeX, treeY, treeZ), treeData.getType());
                         }
                     }
                 }

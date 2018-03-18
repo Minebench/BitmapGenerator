@@ -54,17 +54,17 @@ public class Util {
     }
 
     /**
-     * returns the highest block at a positon which isnt air or leaves
+     * returns the highest block at a position which isn't air or leaves or any other non-occluding block
      *
      * @param world the world
      * @param x     the x coordinate
      * @param z     the z coordinate
-     * @return the highest block at a positon which isnt air or leaves
+     * @return the highest block at a position which isn't air or leaves or any other non-occluding block
      */
     public static int getHighestBlock(World world, int x, int z) {
         for (int y = 255; y > 0; y--) {
             Block b = world.getBlockAt(x, y, z);
-            if (b.getType() != Material.AIR && b.getType() != Material.LEAVES && b.getType() != Material.LEAVES_2) {
+            if (b.getType().isOccluding()) {
                 return y;
             }
         }

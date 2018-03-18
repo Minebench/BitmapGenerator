@@ -32,49 +32,41 @@ import java.util.Random;
  */
 public class OrePopulator extends BlockPopulator {
 
-    private final BufferedImage biomeMap;
     private WorldConfiguration worldConfiguration;
 
     public OrePopulator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
-        this.biomeMap = worldConfiguration.getBiomeMap();
     }
 
 
     @Override
     public synchronized void populate(World world, Random random, Chunk chunk) {
-        int minChunkX = -((biomeMap.getWidth() / 2) / 16);
-        int minChunkZ = -((biomeMap.getHeight() / 2) / 16);
-        int maxChunkX = ((biomeMap.getWidth() / 2) / 16) - 1;
-        int maxChunkZ = ((biomeMap.getHeight() / 2) / 16) - 1;
-        if (chunk.getX() >= minChunkX && chunk.getX() <= maxChunkX && chunk.getZ() >= minChunkZ && chunk.getZ() <= maxChunkZ) {
-            for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-                double veinCount;
-                if (biomeDefinition.getVeinChance() < 1) {
-                    veinCount = Math.random() <= biomeDefinition.getVeinChance() ? 1 : 0;
-                } else {
-                    veinCount = (int) biomeDefinition.getVeinChance();
-                }
-                for (int i = 0; i < veinCount; i++) {
-                    BiomeDefinition.OreVein vein = biomeDefinition.nextVein();
-                    int startX = random.nextInt(10);
-                    int startY = 5 + random.nextInt(40);
-                    int startZ = random.nextInt(10);
-                    double alpha = Math.toRadians(random.nextInt(90));
-                    double beta = Math.toRadians(random.nextInt(90));
+        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
+            double veinCount;
+            if (biomeDefinition.getVeinChance() < 1) {
+                veinCount = Math.random() <= biomeDefinition.getVeinChance() ? 1 : 0;
+            } else {
+                veinCount = (int) biomeDefinition.getVeinChance();
+            }
+            for (int i = 0; i < veinCount; i++) {
+                BiomeDefinition.OreVein vein = biomeDefinition.nextVein();
+                int startX = random.nextInt(10);
+                int startY = 5 + random.nextInt((random.nextBoolean() ? vein.getMaxHeight() : Math.min(worldConfiguration.getWaterHeight(), vein.getMaxHeight())) - 5);
+                int startZ = random.nextInt(10);
+                double alpha = Math.toRadians(random.nextInt(90));
+                double beta = Math.toRadians(random.nextInt(90));
 
-                    int endX = (int) (startX + (vein.getLength() * Math.cos(alpha)));
-                    int endY = (int) (startY + (vein.getLength() * Math.sin(alpha)));
-                    int endZ = (int) (startZ + (vein.getLength() * Math.cos(beta)));
-                    List<Point3D> path = bresenham(new Point3D(startX, startY, startZ), new Point3D(endX, endY, endZ));
-                    for (Point3D point : path) {
-                        for (int sX = 0; sX < vein.getStroke(); sX++) {
-                            for (int sY = 0; sY < vein.getStroke(); sY++) {
-                                for (int sZ = 0; sZ < vein.getStroke(); sZ++) {
-                                    if (chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).getType() == Material.STONE) {
-                                        chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).setTypeIdAndData(
-                                                vein.getOre().getItemType().getId(), vein.getOre().getData(), true);
-                                    }
+                int endX = (int) (startX + (vein.getLength() * Math.cos(alpha)));
+                int endY = (int) (startY + (vein.getLength() * Math.sin(alpha)));
+                int endZ = (int) (startZ + (vein.getLength() * Math.cos(beta)));
+                List<Point3D> path = bresenham(new Point3D(startX, startY, startZ), new Point3D(endX, endY, endZ));
+                for (Point3D point : path) {
+                    for (int sX = 0; sX < vein.getStroke(); sX++) {
+                        for (int sY = 0; sY < vein.getStroke() && point.y + sY < vein.getMaxHeight(); sY++) {
+                            for (int sZ = 0; sZ < vein.getStroke(); sZ++) {
+                                if (chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).getType() == Material.STONE) {
+                                    chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).setTypeIdAndData(
+                                            vein.getOre().getItemType().getId(), vein.getOre().getData(), true);
                                 }
                             }
                         }
