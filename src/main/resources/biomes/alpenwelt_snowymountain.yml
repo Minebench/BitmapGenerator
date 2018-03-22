@@ -1,0 +1,97 @@
+r: 255
+g: 255
+b: 255
+blocks:
+  STONE:
+    block: 1
+    data: 0
+    chance: 0.8
+  GRANITE:
+    block: 1
+    data: 1
+    chance: 0.01
+  DIORITE:
+    block: 1
+    data: 3
+    chance: 0.01
+  ANDESITE:
+    block: 1
+    data: 5
+    chance: 0.01
+  COARSEDIRT:
+    block: 3
+    data: 1
+    chance: 0.01
+biome: EXTREME_HILLS
+surfaceLayerHeight: 4
+snow: true
+floraChance: 10.0
+floraTypes:
+  grass:
+    block: 31
+    data: 1
+    chance: 0.8
+  farn:
+    block: 31
+    data: 2
+    chance: 0.2
+treeChance: 0.0
+treeTypes: null
+schematicChance: 0.0
+schematics: null
+veinChance: 11.0
+veinTypes:
+  diamond:
+    block: 56
+    data: 0
+    chance: 0.02
+    length: 2
+    stroke: 1
+  gold:
+    block: 14
+    data: 0
+    chance: 0.03
+    length: 2
+    stroke: 2
+  emerald:
+    block: 129
+    data: 0
+    chance: 0.01
+    length: 1
+    stroke: 0
+  iron:
+    block: 15
+    data: 0
+    chance: 0.15
+    length: 3
+    stroke: 2
+  coal:
+    block: 16
+    data: 0
+    chance: 0.2
+    length: 3
+    stroke: 3
+  redstone:
+    block: 73
+    data: 0
+    chance: 0.05
+    length: 3
+    stroke: 2
+  granite:
+    block: 1
+    data: 1
+    chance: 0.05
+    length: 3
+    stroke: 2
+  diorite:
+    block: 1
+    data: 3
+    chance: 0.05
+    length: 3
+    stroke: 2
+  andesite:
+    block: 1
+    data: 5
+    chance: 0.05
+    length: 3
+    stroke: 2
