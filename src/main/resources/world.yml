@@ -6,6 +6,7 @@ riverDepth: 4
 caveRadius: 3.9
 noise: 48.0
 snowNoise: 24.0
+generatorType: simplex
 veinTypes:
   diamond:
     block: 56

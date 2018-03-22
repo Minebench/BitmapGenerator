@@ -1,5 +1,7 @@
 package io.github.apfelcreme.BitmapGenerator;
 
+import org.bukkit.util.noise.NoiseGenerator;
+
 /**
  * Copyright (C) 2017 Lord36 aka Apfelcreme
  * <p>
@@ -18,8 +20,7 @@ package io.github.apfelcreme.BitmapGenerator;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class Perlin {
-
+public class Perlin extends NoiseGenerator {
 
     private static final double STRETCH_2D = -0.211324865405187;    //(1/Math.sqrt(2+1)-1)/2;
     private static final double STRETCH_3D = -1.0 / 6.0;            //(1/Math.sqrt(3+1)-1)/3;
@@ -79,6 +80,7 @@ public class Perlin {
     }
 
     //2D OpenSimplex Noise
+    @Override
     public double noise(double x, double y) {
 
         //Place input coordinates onto grid.
@@ -194,6 +196,7 @@ public class Perlin {
     }
 
     //3D OpenSimplex Noise
+    @Override
     public double noise(double x, double y, double z)
     {
         double stretchOffset = (x + y + z) * STRETCH_3D;

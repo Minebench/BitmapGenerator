@@ -12,6 +12,9 @@ import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.material.MaterialData;
+import org.bukkit.util.noise.NoiseGenerator;
+import org.bukkit.util.noise.PerlinNoiseGenerator;
+import org.bukkit.util.noise.SimplexNoiseGenerator;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -69,9 +72,9 @@ public class WorldConfiguration {
     private double noise;
     private double snowNoise;
 
-    private Perlin noiseHeight;
-    private Perlin noiseMap;
-    private Perlin snowHeight;
+    private NoiseGenerator noiseHeight;
+    private NoiseGenerator noiseMap;
+    private NoiseGenerator snowHeight;
     private int waterHeight;
     private int riverDepth;
     private World world;
@@ -145,9 +148,20 @@ public class WorldConfiguration {
             this.snowNoise = worldConfig.getDouble("snowNoise", 24);
             this.waterHeight = worldConfig.getInt("waterHeight");
             this.riverDepth = worldConfig.getInt("riverDepth", 4);
-            this.noiseMap = new Perlin(caveSeed);
-            this.noiseHeight = new Perlin(heightSeed);
-            this.snowHeight = new Perlin(snowSeed);
+            String generatorType = worldConfig.getString("generatorType", "inbuilt");
+            if ("inbuilt".equalsIgnoreCase(generatorType)) {
+                this.noiseMap = new Perlin(caveSeed);
+                this.noiseHeight = new Perlin(heightSeed);
+                this.snowHeight = new Perlin(snowSeed);
+            } else if ("classic".equalsIgnoreCase(generatorType)) {
+                this.noiseMap = new PerlinNoiseGenerator(caveSeed);
+                this.noiseHeight = new PerlinNoiseGenerator(heightSeed);
+                this.snowHeight = new PerlinNoiseGenerator(snowSeed);
+            } else { // simplex
+                this.noiseMap = new SimplexNoiseGenerator(caveSeed);
+                this.noiseHeight = new SimplexNoiseGenerator(heightSeed);
+                this.snowHeight = new SimplexNoiseGenerator(snowSeed);
+            }
 
             plugin.getLogger().info("Cave-Generation: " + caveSeed + ", Cave-Height: " + heightSeed + ", Snow-Height: " + snowSeed);
 
@@ -592,7 +606,7 @@ public class WorldConfiguration {
         int imageX = addOffset(blockX, biomeMap.length, false);
         int imageZ = addOffset(blockZ, biomeMap[0].length, false);
 
-        double val = noiseHeight.noise(imageX / noise, imageZ / noise, 0);
+        double val =  noiseHeight.noise(imageX / noise, imageZ / noise);
 
         return (0x010101 * (int) ((val + 1) * 40)) & 0x000000FF;
     }
@@ -617,7 +631,7 @@ public class WorldConfiguration {
         int imageX = addOffset(snowX, biomeMap.length, false);
         int imageZ = addOffset(snowZ, biomeMap[0].length, false);
 
-        double val = snowHeight.noise(imageX / snowNoise, imageZ / snowNoise, 0);
+        double val = snowHeight.noise(imageX / snowNoise, imageZ / snowNoise);
 
         return (byte)((0x010101 * (int) ((val + 1) * 4.5)) & 0x000000FF);
     }
