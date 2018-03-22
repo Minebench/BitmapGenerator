@@ -113,6 +113,7 @@ public class WorldConfiguration {
     private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed, long snowSeed) {
         this.plugin = plugin;
         this.worldName = worldName;
+        this.world = plugin.getServer().getWorld(worldName);
 
         this.worldFolder = new File(plugin.getDataFolder(), worldName);
         this.prefix = "[" + worldName + "] ";
@@ -589,7 +590,7 @@ public class WorldConfiguration {
      */
     public int getCaveHeight(int blockX, int blockZ) {
         int imageX = addOffset(blockX, biomeMap.length, false);
-        int imageZ = addOffset(blockX, biomeMap[0].length, false);
+        int imageZ = addOffset(blockZ, biomeMap[0].length, false);
 
         double val = noiseHeight.noise(imageX / noise, imageZ / noise, 0);
 
