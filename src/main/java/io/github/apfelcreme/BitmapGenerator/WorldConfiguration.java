@@ -605,7 +605,7 @@ public class WorldConfiguration {
      */
     public boolean isCave(int blockX, int blockZ) {
         int imageX = addOffset(blockX, biomeMap.length, false);
-        int imageZ = addOffset(blockX, biomeMap[0].length, false);
+        int imageZ = addOffset(blockZ, biomeMap[0].length, false);
 
         double val = noiseMap.noise(imageX / noise, 60 / noise, imageZ / noise);
 
