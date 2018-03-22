@@ -71,6 +71,8 @@ public class WorldConfiguration {
     private double caveRadius;
     private double noise;
     private double snowNoise;
+    
+    boolean advancedCaveGenerator;
 
     private NoiseGenerator noiseHeight;
     private NoiseGenerator noiseMap;
@@ -148,6 +150,7 @@ public class WorldConfiguration {
             this.snowNoise = worldConfig.getDouble("snowNoise", 24);
             this.waterHeight = worldConfig.getInt("waterHeight");
             this.riverDepth = worldConfig.getInt("riverDepth", 4);
+            this.advancedCaveGenerator = worldConfig.getBoolean("advancedCaveGenerator", false);
             String generatorType = worldConfig.getString("generatorType", "inbuilt");
             if ("inbuilt".equalsIgnoreCase(generatorType)) {
                 this.noiseMap = new Perlin(caveSeed);
@@ -619,11 +622,23 @@ public class WorldConfiguration {
      * @return true or false
      */
     public boolean isCave(int blockX, int blockZ) {
+        return isCave(blockX, 60, blockZ);
+    }
+    
+    /**
+     * checks if a cave should be generated at the given coordinate
+     *
+     * @param blockX the x coordinate
+     * @param blockY the x coordinate
+     * @param blockZ the z coordinate
+     * @return true or false
+     */
+    public boolean isCave(int blockX, int blockY, int blockZ) {
         int imageX = addOffset(blockX, biomeMap.length, false);
         int imageZ = addOffset(blockZ, biomeMap[0].length, false);
-
-        double val = noiseMap.noise(imageX / noise, 60 / noise, imageZ / noise);
-
+        
+        double val = noiseMap.noise(imageX / noise, blockY / noise, imageZ / noise);
+        
         return (val > 0 && val < 0.1);
     }
 
@@ -647,6 +662,10 @@ public class WorldConfiguration {
 
     public double getCaveRadius() {
         return caveRadius;
+    }
+    
+    public boolean useAdvancedCaveGenerator() {
+        return advancedCaveGenerator;
     }
 
     /**
