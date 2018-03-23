@@ -3,8 +3,7 @@ package io.github.apfelcreme.BitmapGenerator.Populator;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockData;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
-import com.sk89q.worldedit.world.registry.WorldData;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
@@ -14,7 +13,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.generator.BlockPopulator;
 
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
@@ -68,29 +66,30 @@ public class SchematicPopulator extends BlockPopulator {
                         boolean northSouth = rotation % 2 == 0;
                         int xMod;
                         int zMod;
-                        int xStart = schematic.getClipboard().getMinimumPoint().getBlockX();
-                        int yStart = schematic.getClipboard().getMinimumPoint().getBlockY();
-                        int zStart = schematic.getClipboard().getMinimumPoint().getBlockZ();
+                        Clipboard clipboard = worldConfiguration.getSchematic(schematic.getName());
+                        int xStart = clipboard.getMinimumPoint().getBlockX();
+                        int yStart = clipboard.getMinimumPoint().getBlockY();
+                        int zStart = clipboard.getMinimumPoint().getBlockZ();
                         if (rotation < 2) {
                             xMod = 1;
                         } else {
                             xMod = -1;
-                            xStart += schematic.getClipboard().getDimensions().getBlockX() - 1;
+                            xStart += clipboard.getDimensions().getBlockX() - 1;
                         }
                         if (rotation > 0 && rotation < 3) {
                             zMod = -1;
-                            zStart += schematic.getClipboard().getDimensions().getBlockZ() - 1;
+                            zStart += clipboard.getDimensions().getBlockZ() - 1;
                         } else {
                             zMod = 1;
                         }
 
                         int schematicWidth = northSouth
-                                ? schematic.getClipboard().getDimensions().getBlockX()
-                                : schematic.getClipboard().getDimensions().getBlockZ();
-                        int schematicHeight = schematic.getClipboard().getDimensions().getBlockY();
+                                ? clipboard.getDimensions().getBlockX()
+                                : clipboard.getDimensions().getBlockZ();
+                        int schematicHeight = clipboard.getDimensions().getBlockY();
                         int schematicLength = northSouth
-                                ? schematic.getClipboard().getDimensions().getBlockZ()
-                                : schematic.getClipboard().getDimensions().getBlockX();
+                                ? clipboard.getDimensions().getBlockZ()
+                                : clipboard.getDimensions().getBlockX();
                         // Try putting schematic on floor
                         int schematicOffset = schematic.getYOffset();
                         boolean foundSolid = false;
@@ -99,7 +98,7 @@ public class SchematicPopulator extends BlockPopulator {
                                 for (int z = 0; z < schematicLength; z++) {
                                     // Create the rotated vector
                                     Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
-                                    BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
+                                    BaseBlock b = clipboard.getBlock(rotatedVector);
                                     if (b != null && !b.isAir()) {
                                         for (int offset = schematicOffset; yStart + offset > 0; offset--) {
                                             Block block = world.getBlockAt(
@@ -127,7 +126,7 @@ public class SchematicPopulator extends BlockPopulator {
                                                 schematicZ + z - (schematicLength / 2));
                                         // Create the rotated vector
                                         Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + y, zStart + zMod * (northSouth ? z : x));
-                                        BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
+                                        BaseBlock b = clipboard.getBlock(rotatedVector);
                                         if (b != null && !b.isAir()) {
                                             int blockData = b.getData();
                                             // Rotate the actual block

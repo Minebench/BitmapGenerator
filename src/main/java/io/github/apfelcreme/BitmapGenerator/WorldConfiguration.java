@@ -3,12 +3,9 @@ package io.github.apfelcreme.BitmapGenerator;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
-import com.sk89q.worldedit.util.io.Closer;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
-import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.material.MaterialData;
@@ -61,6 +58,7 @@ public class WorldConfiguration {
     private File worldFolder;
     private List<File> biomeFiles;
     private Map<Integer, BiomeDefinition> biomes;
+    private Map<String, Clipboard> schematics = new HashMap<>();
     private String prefix;
 
     private YamlConfiguration worldConfig;
@@ -79,7 +77,6 @@ public class WorldConfiguration {
     private NoiseGenerator snowHeight;
     private int waterHeight;
     private int riverDepth;
-    private World world;
 
     /**
      * creates a new instance if all is fine, or null if an error occurs during the loading process
@@ -118,7 +115,6 @@ public class WorldConfiguration {
     private WorldConfiguration(BitmapGeneratorPlugin plugin, String worldName, long caveSeed, long heightSeed, long snowSeed) {
         this.plugin = plugin;
         this.worldName = worldName;
-        this.world = plugin.getServer().getWorld(worldName);
 
         this.worldFolder = new File(plugin.getDataFolder(), worldName);
         this.prefix = "[" + worldName + "] ";
@@ -152,6 +148,7 @@ public class WorldConfiguration {
             this.riverDepth = worldConfig.getInt("riverDepth", 4);
             this.advancedCaveGenerator = worldConfig.getBoolean("advancedCaveGenerator", false);
             String generatorType = worldConfig.getString("generatorType", "inbuilt");
+            plugin.getLogger().info("Generator noise type: " + generatorType);
             if ("inbuilt".equalsIgnoreCase(generatorType)) {
                 this.noiseMap = new Perlin(caveSeed);
                 this.noiseHeight = new Perlin(heightSeed);
@@ -444,7 +441,7 @@ public class WorldConfiguration {
                     String schematic = biomeConfig.getString("schematics." + schematicName + ".fileName");
                     int yOffset = biomeConfig.getInt("schematics." + schematicName + ".yOffset");
                     double chance = biomeConfig.getDouble("schematics." + schematicName + ".chance");
-                    schematics.add(new BiomeDefinition.Schematic(schematic, getSchematic(schematic), yOffset, chance));
+                    schematics.add(new BiomeDefinition.Schematic(schematic, yOffset, chance));
                 }
             }
             BiomeDefinition biomeDefinition =
@@ -478,6 +475,10 @@ public class WorldConfiguration {
         if (!filename.endsWith(".schematic")) {
             filename += ".schematic";
         }
+        
+        if (schematics.containsKey(filename)) {
+            return schematics.get(filename);
+        }
 
         File file = new File(worldFolder, "schematics/" + filename);
         if (!file.exists()) {
@@ -489,13 +490,11 @@ public class WorldConfiguration {
             plugin.getLogger().log(Level.SEVERE, prefix + "Could not load schematic format from file " + file.getAbsolutePath() + "!");
             return null;
         }
-        Closer closer = Closer.create();
-        try {
-            FileInputStream fis = closer.register(new FileInputStream(file));
-            BufferedInputStream bis = closer.register(new BufferedInputStream(fis));
-            ClipboardReader reader = schemFormat.getReader(bis);
-            return reader.read(BukkitUtil.getLocalWorld(world).getWorldData());
-        } catch (Exception e) {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))){
+            Clipboard clipboard = schemFormat.getReader(bis).read(BukkitUtil.getLocalWorld(plugin.getServer().getWorld(worldName)).getWorldData());
+            schematics.put(filename, clipboard);
+            return clipboard;
+        } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, prefix + "Error loading file " + file.getAbsolutePath(), e);
             return null;
         }
@@ -622,7 +621,12 @@ public class WorldConfiguration {
      * @return true or false
      */
     public boolean isCave(int blockX, int blockZ) {
-        return isCave(blockX, 60, blockZ);
+        int imageX = addOffset(blockX, biomeMap.length, false);
+        int imageZ = addOffset(blockZ, biomeMap[0].length, false);
+    
+        double val = noiseMap.noise(imageX / noise, 60 / noise, imageZ / noise);
+    
+        return (val > 0 && val < 0.1);
     }
     
     /**
@@ -639,7 +643,7 @@ public class WorldConfiguration {
         
         double val = noiseMap.noise(imageX / noise, blockY / noise, imageZ / noise);
         
-        return (val > 0 && val < 0.1);
+        return (val > 0 && val < 0.007);
     }
 
     public byte getSnowHeight(int snowX, int snowZ) {

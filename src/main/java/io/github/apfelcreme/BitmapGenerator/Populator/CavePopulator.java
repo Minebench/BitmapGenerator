@@ -6,9 +6,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.generator.BlockPopulator;
 
-import java.awt.image.BufferedImage;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Random;
 
 /**
@@ -40,21 +42,19 @@ public class CavePopulator extends BlockPopulator {
     @Override
     public void populate(World world, Random random, Chunk chunk) {
         double radius = worldConfiguration.getCaveRadius();
-        int halfRadius = (int) Math.round(radius / 2);
-        double squaredRadius = radius * radius;
-        for (int x = chunk.getX() << 4; x < (chunk.getX() << 4) + 16; x += halfRadius) {
-            for (int z = chunk.getZ() << 4; z < (chunk.getZ() << 4) + 16; z += halfRadius) {
+        for (int x = chunk.getX() << 4; x < (chunk.getX() << 4) + 16; x++) {
+            for (int z = chunk.getZ() << 4; z < (chunk.getZ() << 4) + 16; z++) {
                 if (worldConfiguration.useAdvancedCaveGenerator()) {
-                    for (int y = (int) radius; y < 128; y += halfRadius) {
+                    for (int y = (int) radius + 1; y < 128; y++) {
                         if (worldConfiguration.isCave(x, y, z)) {
-                            drawSphere(world, x, y, z, radius, squaredRadius);
+                            drawSphere(world, x, y, z, radius);
                         }
                     }
                 } else {
                     if (worldConfiguration.isCave(x, z)) {
                         int y = worldConfiguration.getCaveHeight(x, z);
                         if (y > radius + 1 && y < 128) {
-                            drawSphere(world, x, y, z, radius, squaredRadius);
+                            drawSphere(world, x, y, z, radius);
                         }
                     }
                 }
@@ -62,20 +62,31 @@ public class CavePopulator extends BlockPopulator {
         }
     }
     
-    private void drawSphere(World world, int coordX, int coordY, int coordZ, double radius, double squaredRadius) {
+    private void drawSphere(World world, int coordX, int coordY, int coordZ, double radius) {
         Block block = world.getBlockAt(coordX, coordY, coordZ);
         if (block.getType() == Material.STONE) {
             // TODO: make this somehow nicer :(
+            int chunkX = coordX >> 4;
+            int chunkZ = coordZ >> 4;
+    
+            int caveHeight = worldConfiguration.getCaveHeight(coordX, coordZ);
+            radius = (caveHeight / 50) * radius;
+            double squaredRadius = Math.pow(radius, 2);
+            
             for (int rX = (int) (coordX - radius); rX < coordX + radius; rX++) {
-                for (int rY = (int) (coordY - radius); rY < coordY + radius; rY++) {
-                    for (int rZ = (int) (coordZ - radius); rZ < coordZ + radius; rZ++) {
-                        if (block.getLocation().distanceSquared(new Location(world, rX, rY, rZ)) <= squaredRadius) {
-                            world.getBlockAt(rX, rY, rZ).setType(Material.AIR, false);
+                for (int rZ = (int) (coordZ - radius); rZ < coordZ + radius; rZ++) {
+                    if ((rX >> 4 == chunkX && rZ >> 4 == chunkZ) || world.isChunkLoaded(rX >> 4, rZ >> 4)) {
+                        for (int rY = (int) (coordY - radius); rY < coordY + radius; rY++) {
+                            if (rY > 1 && block.getLocation().distanceSquared(new Location(world, rX, rY, rZ)) <= squaredRadius) {
+                                Block b = world.getBlockAt(rX, rY, rZ);
+                                if (b.getType().isSolid()) {
+                                    b.setType(rY > 10 ? Material.AIR : Material.LAVA, false);
+                                }
+                            }
                         }
                     }
                 }
             }
-        
         }
     }
     

@@ -391,19 +391,17 @@ public class BiomeDefinition {
      */
     public static class Schematic {
         private String name;
-        private Clipboard clipboard;
         private int yOffset;
         private double chance;
 
-        public Schematic(String name, Clipboard clipboard, int yOffset, double chance) {
+        public Schematic(String name, int yOffset, double chance) {
             this.name = name;
-            this.clipboard = clipboard;
             this.yOffset = yOffset;
             this.chance = chance;
         }
-
-        public Clipboard getClipboard() {
-            return clipboard;
+    
+        public String getName() {
+            return name;
         }
 
         public int getYOffset() {
