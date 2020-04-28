@@ -406,7 +406,11 @@ public class WorldConfiguration {
             List<BiomeDefinition.BlockChance> blocks = new ArrayList<>();
             if (biomeConfig.get("blocks") != null) {
                 for (String materialName : biomeConfig.getConfigurationSection("blocks").getKeys(false)) {
-                    Material material = Material.matchMaterial(biomeConfig.getString("blocks." + materialName + ".block"));
+                    String matStr = biomeConfig.getString(biomeConfig.getString("blocks." + materialName + ".block", materialName));
+                    Material material = Material.matchMaterial(matStr);
+                    if (material == null) {
+                        throw new IllegalArgumentException("Unknown block type set for " + materialName + ": " + matStr);
+                    }
                     BlockData blockData = plugin.getServer().createBlockData(material, biomeConfig.getString("blocks." + materialName + ".data", ""));
                     double chance = biomeConfig.getDouble("blocks." + materialName + ".chance");
                     blocks.add(new BiomeDefinition.BlockChance(blockData, chance));
@@ -416,7 +420,11 @@ public class WorldConfiguration {
             List<BiomeDefinition.BlockChance> floraTypes = new ArrayList<>();
             if (biomeConfig.get("floraTypes") != null) {
                 for (String floraName : biomeConfig.getConfigurationSection("floraTypes").getKeys(false)) {
-                    Material material = Material.matchMaterial(biomeConfig.getString("floraTypes." + floraName + ".block"));
+                    String matStr = biomeConfig.getString(biomeConfig.getString("floraTypes." + floraName + ".block", floraName));
+                    Material material = Material.matchMaterial(matStr);
+                    if (material == null) {
+                        throw new IllegalArgumentException("Unknown flora type set for " + floraName + ": " + matStr);
+                    }
                     BlockData blockData = plugin.getServer().createBlockData(material, biomeConfig.getString("floraTypes." + floraName + ".data", ""));
                     double chance = biomeConfig.getDouble("floraTypes." + floraName + ".chance");
                     floraTypes.add(new BiomeDefinition.BlockChance(blockData, chance));
@@ -426,7 +434,7 @@ public class WorldConfiguration {
             List<BiomeDefinition.TreeData> treeTypes = new ArrayList<>();
             if (biomeConfig.get("treeTypes") != null) {
                 for (String treeName : biomeConfig.getConfigurationSection("treeTypes").getKeys(false)) {
-                    String type = biomeConfig.getString("treeTypes." + treeName + ".type");
+                    String type = biomeConfig.getString("treeTypes." + treeName + ".type", treeName);
                     TreeType treeType = TreeType.valueOf(type);
                     double chance = biomeConfig.getDouble("treeTypes." + treeName + ".chance");
                     treeTypes.add(new BiomeDefinition.TreeData(treeType, chance));
@@ -436,7 +444,11 @@ public class WorldConfiguration {
             List<BiomeDefinition.OreVein> veinTypes = new ArrayList<>();
             if (biomeConfig.get("veinTypes") != null) {
                 for (String veinName : biomeConfig.getConfigurationSection("veinTypes").getKeys(false)) {
-                    Material material = Material.matchMaterial(biomeConfig.getString("veinTypes." + veinName + ".block", worldConfig.getString("veinTypes." + veinName + ".block")));
+                    String matStr = biomeConfig.getString("veinTypes." + veinName + ".block", worldConfig.getString("veinTypes." + veinName + ".block", veinName));
+                    Material material = Material.matchMaterial(matStr);
+                    if (material == null) {
+                        throw new IllegalArgumentException("Unknown vein type set for " + veinName + ": " + matStr);
+                    }
                     BlockData blockData = plugin.getServer().createBlockData(material, biomeConfig.getString("veinTypes." + veinName + ".data", worldConfig.getString("veinTypes." + veinName + ".data", "")));
                     double chance = biomeConfig.getDouble("veinTypes." + veinName + ".chance", worldConfig.getInt("veinTypes." + veinName + ".chance"));
                     int length = biomeConfig.getInt("veinTypes." + veinName + ".length", worldConfig.getInt("veinTypes." + veinName + ".length"));
