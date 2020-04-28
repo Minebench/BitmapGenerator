@@ -406,7 +406,7 @@ public class WorldConfiguration {
             List<BiomeDefinition.BlockChance> blocks = new ArrayList<>();
             if (biomeConfig.get("blocks") != null) {
                 for (String materialName : biomeConfig.getConfigurationSection("blocks").getKeys(false)) {
-                    String matStr = biomeConfig.getString(biomeConfig.getString("blocks." + materialName + ".block", materialName));
+                    String matStr = biomeConfig.getString("blocks." + materialName + ".block", materialName);
                     Material material = Material.matchMaterial(matStr);
                     if (material == null) {
                         throw new IllegalArgumentException("Unknown block type set for " + materialName + ": " + matStr);
@@ -420,7 +420,7 @@ public class WorldConfiguration {
             List<BiomeDefinition.BlockChance> floraTypes = new ArrayList<>();
             if (biomeConfig.get("floraTypes") != null) {
                 for (String floraName : biomeConfig.getConfigurationSection("floraTypes").getKeys(false)) {
-                    String matStr = biomeConfig.getString(biomeConfig.getString("floraTypes." + floraName + ".block", floraName));
+                    String matStr = biomeConfig.getString("floraTypes." + floraName + ".block", floraName);
                     Material material = Material.matchMaterial(matStr);
                     if (material == null) {
                         throw new IllegalArgumentException("Unknown flora type set for " + floraName + ": " + matStr);
