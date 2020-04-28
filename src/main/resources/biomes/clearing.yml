@@ -9,8 +9,7 @@ blocks:
     block: coarse_dirt
     chance: 0.35
   PODSOL:
-    block: dirt
-    data: 2
+    block: podzol
     chance: 0.1
   GRASS:
     block: grass_block

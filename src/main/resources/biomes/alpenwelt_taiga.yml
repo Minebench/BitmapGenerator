@@ -10,7 +10,6 @@ blocks:
     chance: 0.2
   PODSOL:
     block: dirt
-    data: 2
     chance: 0.25
   GRAVEL:
     block: gravel
@@ -145,19 +144,16 @@ veinTypes:
     stroke: 2
   granite:
     block: stone
-    data: 1
     chance: 0.1
     length: 3
     stroke: 2
   diorite:
     block: stone
-    data: 3
     chance: 0.1
     length: 3
     stroke: 2
   andesite:
     block: stone
-    data: 5
     chance: 0.1
     length: 3
     stroke: 2
