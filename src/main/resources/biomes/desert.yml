@@ -3,12 +3,10 @@ g: 100
 b: 0
 blocks:
   SAND:
-    block: 12
-    data: 0
+    block: sand
     chance: 0.95
   SANDSTONE:
-    block: 24
-    data: 0
+    block: sandstone
     chance: 0.05
 biome: DESERT
 surfaceLayerHeight: 4
@@ -16,12 +14,10 @@ snow: false
 floraChance: 4.0
 floraTypes:
   deadshrub:
-    block: 31
-    data: 0
+    block: dead_bush
     chance: 0.8
   cactus:
-    block: 81
-    data: 0
+    block: cactus
     chance: 0.2
 treeChance: 0.0
 treeTypes: null

@@ -3,10 +3,9 @@ g: 255
 b: 200
 blocks:
   SAND:
-    block: 12
-    data: 0
+    block: sand
     chance: 1.0
-biome: BEACHES
+biome: BEACH
 surfaceLayerHeight: 4
 snow: false
 floraChance: 0.0

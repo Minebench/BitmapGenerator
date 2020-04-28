@@ -3,28 +3,22 @@ g: 50
 b: 0
 blocks:
   DIRT:
-    block: 3
-    data: 0
+    block: dirt
     chance: 0.2
   COARSEDIRT:
-    block: 3
-    data: 1
+    block: coarse_dirt
     chance: 0.2
   PODSOL:
-    block: 3
-    data: 2
+    block: podzol
     chance: 0.25
   GRAVEL:
-    block: 13
-    data: 0
+    block: gravel
     chance: 0.1
   GRASS:
-    block: 2
-    data: 0
+    block: grass_block
     chance: 0.4
   STONE:
-    block: 1
-    data: 0
+    block: stone
     chance: 0.1
 biome: TAIGA
 surfaceLayerHeight: 4
@@ -32,12 +26,10 @@ snow: false
 floraChance: 70.0
 floraTypes:
   grass:
-    block: 31
-    data: 1
+    block: grass
     chance: 0.4
   farn:
-    block: 31
-    data: 2
+    block: fern
     chance: 0.4
 treeChance: 12.0
 treeTypes:

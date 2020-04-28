@@ -4,7 +4,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import org.bukkit.TreeType;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
-import org.bukkit.material.MaterialData;
+import org.bukkit.block.data.BlockData;
 
 import java.util.List;
 import java.util.Random;
@@ -34,9 +34,9 @@ public class BiomeDefinition {
     private Biome biome;
     private int surfaceLayerHeight;
     private boolean snowfall;
-    private List<BlockData> blocks;
+    private List<BlockChance> blocks;
     private double floraChance;
-    private List<BlockData> floraTypes;
+    private List<BlockChance> floraTypes;
     private double treeChance;
     private List<TreeData> treeTypes;
     private double veinChance;
@@ -46,7 +46,7 @@ public class BiomeDefinition {
 
 
     public BiomeDefinition(String name, int r, int g, int b, Biome biome, int surfaceLayerHeight, boolean snowfall,
-                           List<BlockData> blocks, double floraChance, List<BlockData> floraTypes, double treeChance,
+                           List<BlockChance> blocks, double floraChance, List<BlockChance> floraTypes, double treeChance,
                            List<TreeData> treeTypes, double veinChance, List<OreVein> veinTypes, double schematicChance,
                            List<Schematic> schematics) {
         this.name = name;
@@ -187,9 +187,8 @@ public class BiomeDefinition {
      */
     public boolean isGroundBlock(Block block) {
         boolean isGround = false;
-        for (BlockData blockData : blocks) {
-            if (blockData.materialData.getItemType() == block.getType()
-                    && blockData.materialData.getData() == block.getData()) {
+        for (BlockChance blockChance : blocks) {
+            if (block.getBlockData().matches(blockChance.blockData)) {
                 isGround = true;
             }
         }
@@ -201,11 +200,11 @@ public class BiomeDefinition {
      *
      * @return a random blockData
      */
-    public MaterialData nextBlock() {
+    public BlockData nextBlock() {
         int totalSum = 0;
         Random random = new Random();
-        for (BlockData blockData : blocks) {
-            totalSum += blockData.chance * 100;
+        for (BlockChance blockChance : blocks) {
+            totalSum += blockChance.chance * 100;
         }
         int index = random.nextInt(totalSum);
         int sum = 0;
@@ -213,7 +212,7 @@ public class BiomeDefinition {
         while (sum < index) {
             sum = sum + (int) (blocks.get(i++).chance * 100);
         }
-        return blocks.get(Math.max(0, i - 1)).materialData;
+        return blocks.get(Math.max(0, i - 1)).blockData;
     }
 
     /**
@@ -221,10 +220,10 @@ public class BiomeDefinition {
      *
      * @return a random flora
      */
-    public MaterialData nextFloraData() {
+    public BlockData nextFloraData() {
         int totalSum = 0;
         Random random = new Random();
-        for (BlockData flora : floraTypes) {
+        for (BlockChance flora : floraTypes) {
             totalSum += flora.chance * 100;
         }
         int index = random.nextInt(totalSum);
@@ -233,7 +232,7 @@ public class BiomeDefinition {
         while (sum < index) {
             sum = sum + (int) (floraTypes.get(i++).chance * 100);
         }
-        return floraTypes.get(Math.max(0, i - 1)).materialData;
+        return floraTypes.get(Math.max(0, i - 1)).blockData;
     }
 
     /**
@@ -309,18 +308,18 @@ public class BiomeDefinition {
     /**
      * a class to represent a block type
      */
-    public static class BlockData {
-        private MaterialData materialData;
+    public static class BlockChance {
+        private BlockData blockData;
         private double chance;
 
-        public BlockData(MaterialData materialData, double chance) {
-            this.materialData = materialData;
+        public BlockChance(BlockData blockData, double chance) {
+            this.blockData = blockData;
             this.chance = chance;
         }
 
         @Override
         public String toString() {
-            return materialData.getItemType().name() + ":" + materialData.getData() + "*" + chance;
+            return blockData.getAsString() + "*" + chance;
         }
     }
 
@@ -350,13 +349,13 @@ public class BiomeDefinition {
      * a class to represent an ore vein
      */
     public static class OreVein {
-        private MaterialData ore;
+        private BlockData ore;
         private double chance;
         private int length;
         private int stroke;
         private int maxHeight;
 
-        public OreVein(MaterialData ore, double chance, int length, int stroke, int maxHeight) {
+        public OreVein(BlockData ore, double chance, int length, int stroke, int maxHeight) {
             this.ore = ore;
             this.chance = chance;
             this.length = length;
@@ -364,7 +363,7 @@ public class BiomeDefinition {
             this.maxHeight = maxHeight;
         }
 
-        public MaterialData getOre() {
+        public BlockData getOre() {
             return ore;
         }
 
@@ -382,7 +381,7 @@ public class BiomeDefinition {
 
         @Override
         public String toString() {
-            return ore.getItemType().name() + ":" + ore.getData() + "*" + chance + "<" + maxHeight;
+            return ore.getAsString() + "*" + chance + "<" + maxHeight;
         }
     }
 

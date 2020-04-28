@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.type.Snow;
 import org.bukkit.generator.BlockPopulator;
 
 import java.awt.image.BufferedImage;
@@ -53,7 +54,9 @@ public class SnowPopulator extends BlockPopulator {
                                 if (block.getType() == Material.AIR
                                         && block.getRelative(BlockFace.DOWN).getType() != Material.SNOW
                                         && block.getRelative(BlockFace.DOWN).getType() != Material.AIR) {
-                                    block.setTypeIdAndData(Material.SNOW.getId(), worldConfiguration.getSnowHeight(snowX, snowZ), true);
+                                    Snow snow = (Snow) Material.SNOW.createBlockData();
+                                    snow.setLayers(worldConfiguration.getSnowHeight(snowX, snowZ));
+                                    block.setBlockData(snow);
                                 }
                             }
                         }

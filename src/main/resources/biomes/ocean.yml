@@ -3,20 +3,16 @@ g: 0
 b: 255
 blocks:
   SAND:
-    block: 12
-    data: 0
+    block: sand
     chance: 0.3
   DIRT:
-    block: 3
-    data: 0
+    block: dirt
     chance: 0.3
   GRAVEL:
-    block: 13
-    data: 0
+    block: gravel
     chance: 0.3
   CLAY:
-    block: 82
-    data: 0
+    block: clay
     chance: 0.1
 biome: OCEAN
 surfaceLayerHeight: 4

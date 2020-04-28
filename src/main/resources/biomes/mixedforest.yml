@@ -6,26 +6,21 @@ surfaceLayerHeight: 4
 snow: false
 blocks:
   GRASS:
-    block: 2
-    data: 0
+    block: grass_block
     chance: 0.9
   COARSEDIRT:
-    block: 3
-    data: 1
+    block: coarse_dirt
     chance: 0.1
 floraChance: 60.0
 floraTypes:
   grass:
-    block: 31
-    data: 1
+    block: grass
     chance: 0.7
   farn:
-    block: 31
-    data: 2
+    block: fern
     chance: 0.1
   white:
-    block: 38
-    data: 3
+    block: azure_bluet
     chance: 0.01
 treeChance: 11.0
 treeTypes:

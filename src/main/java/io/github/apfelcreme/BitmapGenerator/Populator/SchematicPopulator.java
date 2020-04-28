@@ -1,10 +1,17 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.blocks.BlockData;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
-import com.sk89q.worldedit.world.registry.WorldData;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.world.block.BlockState;
+import com.sk89q.worldedit.world.block.BlockType;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
@@ -14,7 +21,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.generator.BlockPopulator;
 
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
@@ -98,9 +104,9 @@ public class SchematicPopulator extends BlockPopulator {
                             for (int x = 0; x < schematicWidth; x++) {
                                 for (int z = 0; z < schematicLength; z++) {
                                     // Create the rotated vector
-                                    Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
-                                    BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
-                                    if (b != null && !b.isAir()) {
+                                    BlockVector3 rotatedVector = BlockVector3.at(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
+                                    BlockState b = schematic.getClipboard().getBlock(rotatedVector);
+                                    if (b != null && !b.getBlockType().getMaterial().isAir()) {
                                         for (int offset = schematicOffset; yStart + offset > 0; offset--) {
                                             Block block = world.getBlockAt(
                                                     schematicX + x - (schematicWidth / 2),
@@ -117,37 +123,20 @@ public class SchematicPopulator extends BlockPopulator {
                             }
                         }
 
-                        for (int x = 0; x < schematicWidth; x++) {
-                            for (int y = 0; y < schematicHeight; y++) {
-                                for (int z = 0; z < schematicLength; z++) {
-                                    try {
-                                        Block block = world.getBlockAt(
-                                                schematicX + x - (schematicWidth / 2),
-                                                schematicY + y + schematicOffset,
-                                                schematicZ + z - (schematicLength / 2));
-                                        // Create the rotated vector
-                                        Vector rotatedVector = new Vector(xStart + xMod * (northSouth ? x : z), yStart + y, zStart + zMod * (northSouth ? z : x));
-                                        BaseBlock b = schematic.getClipboard().getBlock(rotatedVector);
-                                        if (b != null && !b.isAir()) {
-                                            int blockData = b.getData();
-                                            // Rotate the actual block
-                                            if (rotation < 3) {
-                                                for (int rot = 0; rot < rotation; rot++) {
-                                                    blockData = BlockData.rotate90(b.getId(), blockData);
-                                                }
-                                            } else {
-                                                blockData = BlockData.rotate90Reverse(b.getId(), blockData);
-                                            }
-                                            block.setTypeIdAndData(b.getId(), (byte) blockData, true);
-                                        }
-                                    } catch (ArrayIndexOutOfBoundsException e) {
-                                        Bukkit.getServer().getLogger().severe(
-                                                "Error: too fast (?) at " + schematicX + "," + schematicY + "," + schematicZ);
-                                        e.printStackTrace();
-                                        // TODO: Happens sometimes for no apparent reason ?
-                                    }
-                                }
-                            }
+                        try {
+                            EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(BukkitAdapter.adapt(world), Integer.MAX_VALUE);
+                            LocalSession session = new LocalSession();
+                            session.setClipboard(new ClipboardHolder(schematic.getClipboard()));
+                            session.getClipboard().setTransform(new AffineTransform().rotateY(rotation * 90));
+                            Operation operation = session.getClipboard()
+                                    .createPaste(editSession)
+                                    .ignoreAirBlocks(true)
+                                    .to(BlockVector3.at(schematicX - schematicWidth / 2, schematicY + schematicOffset, schematicZ - schematicLength / 2))
+                                    .build();
+                            Operations.complete(operation);
+                            editSession.flushSession();
+                        } catch (WorldEditException e) {
+                            e.printStackTrace();
                         }
                     }
                 }

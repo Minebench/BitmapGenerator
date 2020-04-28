@@ -3,28 +3,23 @@ g: 123
 b: 63
 blocks:
   DIRT:
-    block: 3
-    data: 0
+    block: dirt
     chance: 0.2
   COARSEDIRT:
-    block: 3
-    data: 1
+    block: coarse_dirt
     chance: 0.2
   PODSOL:
-    block: 3
+    block: dirt
     data: 2
     chance: 0.25
   GRAVEL:
-    block: 13
-    data: 0
+    block: gravel
     chance: 0.1
   GRASS:
-    block: 2
-    data: 0
+    block: grass_block
     chance: 0.4
   STONE:
-    block: 1
-    data: 0
+    block: stone
     chance: 0.1
 biome: TAIGA
 surfaceLayerHeight: 4
@@ -32,12 +27,10 @@ snow: false
 floraChance: 70.0
 floraTypes:
   grass:
-    block: 31
-    data: 1
+    block: grass
     chance: 0.4
   farn:
-    block: 31
-    data: 2
+    block: fern
     chance: 0.4
 treeChance: 0.0
 treeTypes: null
@@ -126,49 +119,44 @@ schematics:
 veinChance: 9.0
 veinTypes:
   diamond:
-    block: 56
-    data: 0
+    block: diamond_ore
     chance: 0.01
     length: 2
     stroke: 1
   gold:
-    block: 14
-    data: 0
+    block: gold_ore
     chance: 0.07
     length: 2
     stroke: 2
   iron:
-    block: 15
-    data: 0
+    block: iron_ore
     chance: 0.2
     length: 3
     stroke: 2
   coal:
-    block: 16
-    data: 0
+    block: coal_ore
     chance: 0.25
     length: 3
     stroke: 3
   redstone:
-    block: 73
-    data: 0
+    block: redstone_ore
     chance: 0.01
     length: 3
     stroke: 2
   granite:
-    block: 1
+    block: stone
     data: 1
     chance: 0.1
     length: 3
     stroke: 2
   diorite:
-    block: 1
+    block: stone
     data: 3
     chance: 0.1
     length: 3
     stroke: 2
   andesite:
-    block: 1
+    block: stone
     data: 5
     chance: 0.1
     length: 3

@@ -3,3 +3,4 @@ version: '${minecraft.plugin.version}'
 main: io.github.apfelcreme.BitmapGenerator.BitmapGeneratorPlugin
 author: Lord36
 load: STARTUP
+api-version: "1.15"

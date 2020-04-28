@@ -3,71 +3,69 @@ heightMap: 'heightmap.png'
 rivertMap: 'rivermap.png'
 waterHeight: 60
 riverDepth: 4
+vanilla:
+  caves: true
+  decorations: false
+  mobs: true
+  structures: false
 caveRadius: 3.9
 noise: 48.0
 snowNoise: 24.0
 generatorType: simplex
 veinTypes:
   diamond:
-    block: 56
-    data: 0
+    block: diamond_ore
     length: 2
     stroke: 1
     max-height: 16
   gold:
-    block: 14
-    data: 0
+    block: gold_ore
     length: 2
     stroke: 2
     max-height: 34
   iron:
-    block: 15
-    data: 0
+    block: iron_ore
     length: 3
     stroke: 2
     max-height: 68
   coal:
-    block: 16
-    data: 0
+    block: coal_ore
     length: 3
     stroke: 3
     max-height: 132
   emerald:
-    block: 129
-    data: 0
+    block: emerald_ore
     length: 1
     stroke: 0
     max-height: 33
   lapis:
-    block: 21
-    data: 0
+    block: lapis_ore
     length: 2
     stroke: 2
     max-height: 34
   redstone:
-    block: 73
-    data: 0
+    block: redstone_ore
     length: 3
     stroke: 2
     max-height: 16
   granite:
-    block: 1
-    data: 1
+    block: granite
     chance: 0.1
     length: 3
     stroke: 2
   diorite:
-    block: 1
-    data: 3
+    block: diorite
     length: 3
     stroke: 2
   andesite:
-    block: 1
-    data: 5
+    block: andesite
     length: 3
     stroke: 2
   dirt:
-    block: 3
-    data: 0
+    block: dirt
+    length: 5
+    stroke: 4
+  gravel:
+    block: gravel
     length: 5
     stroke: 4

@@ -3,16 +3,13 @@ g: 150
 b: 200
 blocks:
   GRAVEL:
-    block: 13
-    data: 0
+    block: gravel
     chance: 0.45
   SAND:
-    block: 12
-    data: 0
+    block: sand
     chance: 0.45
   CLAY:
-    block: 82
-    data: 0
+    block: clay
     chance: 0.2
 biome: RIVER
 surfaceLayerHeight: 4

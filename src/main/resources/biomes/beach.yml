@@ -3,14 +3,12 @@ g: 255
 b: 0
 blocks:
   SAND:
-    block: 12
-    data: 0
+    block: sand
     chance: 0.9
   SANDSTONE:
-    block: 24
-    data: 0
+    block: sandstone
     chance: 0.1
-biome: BEACHES
+biome: BEACH
 surfaceLayerHeight: 4
 snow: false
 floraChance: 0.0

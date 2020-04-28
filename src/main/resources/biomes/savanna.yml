@@ -3,12 +3,10 @@ g: 150
 b: 100
 blocks:
   GRASS:
-    block: 2
-    data: 0
+    block: grass_block
     chance: 0.9
   COARSEDIRT:
-    block: 3
-    data: 1
+    block: coarse_dirt
     chance: 0.1
 biome: SAVANNA
 surfaceLayerHeight: 4
@@ -16,8 +14,7 @@ snow: false
 floraChance: 140.0
 floraTypes:
   grass:
-    block: 31
-    data: 1
+    block: grass
     chance: 1.0
 treeChance: 0.7
 treeTypes:

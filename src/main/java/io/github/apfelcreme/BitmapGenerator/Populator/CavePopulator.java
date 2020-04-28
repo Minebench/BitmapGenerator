@@ -54,7 +54,7 @@ public class CavePopulator extends BlockPopulator {
                                     for (int rZ = (int) (coordZ - radius); rZ < coordZ + radius; rZ++) {
                                         if (block.getType() == Material.STONE
                                                 && block.getLocation().distance(world.getBlockAt(rX, rY, rZ).getLocation()) <= radius) {
-                                            world.getBlockAt(rX, rY, rZ).setTypeIdAndData(Material.AIR.getId(), (byte) 0, false);
+                                            world.getBlockAt(rX, rY, rZ).setType(Material.AIR, false);
                                         }
                                     }
                                 }

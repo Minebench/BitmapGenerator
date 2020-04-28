@@ -3,12 +3,10 @@ g: 212
 b: 116
 blocks:
   GRASS:
-    block: 2
-    data: 0
+    block: grass_block
     chance: 0.99
   COARSEDIRT:
-    block: 3
-    data: 1
+    block: coarse_dirt
     chance: 0.01
 biome: FOREST
 surfaceLayerHeight: 4
@@ -16,24 +14,19 @@ snow: false
 floraChance: 160.0
 floraTypes:
   grass:
-    block: 31
-    data: 1
+    block: grass
     chance: 0.9
   farn:
-    block: 31
-    data: 2
+    block: fern
     chance: 0.01
   yellow:
-    block: 37
-    data: 0
+    block: dandelion
     chance: 0.01
   red:
-    block: 38
-    data: 0
+    block: poppy
     chance: 0.01
   white:
-    block: 38
-    data: 3
+    block: azure_bluet
     chance: 0.03
 treeChance: 0.0
 treeTypes: null
@@ -94,50 +87,42 @@ schematics:
 veinChance: 11.0
 veinTypes:
   diamond:
-    block: 56
-    data: 0
+    block: diamond_ore
     chance: 0.01
     length: 2
     stroke: 1
   gold:
-    block: 14
-    data: 0
+    block: gold_ore
     chance: 0.04
     length: 2
     stroke: 2
   iron:
-    block: 15
-    data: 0
+    block: iron_ore
     chance: 0.12
     length: 3
     stroke: 2
   coal:
-    block: 16
-    data: 0
+    block: coal_ore
     chance: 0.17
     length: 3
     stroke: 3
   redstone:
-    block: 73
-    data: 0
+    block: redstone_ore
     chance: 0.05
     length: 3
     stroke: 2
   granite:
-    block: 1
-    data: 1
+    block: granite
     chance: 0.05
     length: 3
     stroke: 2
   diorite:
-    block: 1
-    data: 3
+    block: diorite
     chance: 0.05
     length: 3
     stroke: 2
   andesite:
-    block: 1
-    data: 5
+    block: andesite
     chance: 0.05
     length: 3
     stroke: 2

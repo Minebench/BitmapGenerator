@@ -3,14 +3,12 @@ g: 200
 b: 100
 blocks:
   GRASS:
-    block: 2
-    data: 0
+    block: grass_block
     chance: 0.9
   COARSEDIRT:
-    block: 3
-    data: 1
+    block: coarse_dirt
     chance: 0.1
-biome: ICE_FLATS
+biome: SNOWY_TAIGA
 surfaceLayerHeight: 4
 snow: true
 floraChance: 0.0

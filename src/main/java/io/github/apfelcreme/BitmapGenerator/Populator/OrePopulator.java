@@ -65,8 +65,7 @@ public class OrePopulator extends BlockPopulator {
                         for (int sY = 0; sY < vein.getStroke() && point.y + sY < vein.getMaxHeight(); sY++) {
                             for (int sZ = 0; sZ < vein.getStroke(); sZ++) {
                                 if (chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).getType() == Material.STONE) {
-                                    chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).setTypeIdAndData(
-                                            vein.getOre().getItemType().getId(), vein.getOre().getData(), true);
+                                    chunk.getBlock(point.x + sX, point.y + sY, point.z + sZ).setBlockData(vein.getOre(), false);
                                 }
                             }
                         }

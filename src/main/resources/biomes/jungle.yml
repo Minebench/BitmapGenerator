@@ -3,12 +3,10 @@ g: 50
 b: 0
 blocks:
   DIRT:
-    block: 3
-    data: 0
+    block: dirt
     chance: 0.35
   GRASS:
-    block: 2
-    data: 0
+    block: grass_block
     chance: 0.9
 biome: JUNGLE
 surfaceLayerHeight: 4
@@ -16,16 +14,13 @@ snow: false
 floraChance: 10.0
 floraTypes:
   grass:
-    block: 31
-    data: 1
+    block: grass
     chance: 0.2
   farn:
-    block: 31
-    data: 2
+    block: fern
     chance: 0.7
   blue:
-    block: 38
-    data: 1
+    block: blue_orchid
     chance: 0.01
 treeChance: 22.0
 treeTypes:

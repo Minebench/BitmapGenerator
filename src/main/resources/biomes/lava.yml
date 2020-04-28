@@ -3,10 +3,9 @@ g: 50
 b: 0
 blocks:
   LAVA:
-    block: 10
-    data: 0
+    block: lava
     chance: 1.0
-biome: HELL
+biome: NETHER
 surfaceLayerHeight: 4
 snow: false
 floraChance: 0.0

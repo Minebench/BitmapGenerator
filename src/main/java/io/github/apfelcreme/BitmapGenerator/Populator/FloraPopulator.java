@@ -5,9 +5,11 @@ import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.material.MaterialData;
 
@@ -56,11 +58,11 @@ public class FloraPopulator extends BlockPopulator {
                 int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
                 int floraY = Util.getHighestBlock(world, floraX, floraZ) + 1;
                 if (worldConfiguration.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
-                    MaterialData floraData = biomeDefinition.nextFloraData();
+                    BlockData floraData = biomeDefinition.nextFloraData();
                     if (floraData != null) {
                         if (biomeDefinition.isGroundBlock(world.getBlockAt(floraX, floraY - 1, floraZ))) {
                             if (canBePlanted(floraData, world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                                world.getBlockAt(floraX, floraY, floraZ).setTypeIdAndData(floraData.getItemType().getId(), floraData.getData(), true);
+                                world.getBlockAt(floraX, floraY, floraZ).setBlockData(floraData, false);
                             }
                         }
                     }
@@ -76,8 +78,8 @@ public class FloraPopulator extends BlockPopulator {
      * @param groundBlock the block
      * @return true if it can be planted there, false otherwise
      */
-    private boolean canBePlanted(MaterialData flora, Block groundBlock) {
-        if (flora.getItemType() == Material.LONG_GRASS) {
+    private boolean canBePlanted(BlockData flora, Block groundBlock) {
+        if (Tag.FLOWERS.isTagged(flora.getMaterial())) {
             if (groundBlock.getType() != Material.GRASS && groundBlock.getType() != Material.DIRT) {
                 return false;
             }

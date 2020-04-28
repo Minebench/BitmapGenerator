@@ -3,37 +3,30 @@ g: 200
 b: 200
 blocks:
   STONE:
-    block: 1
-    data: 0
+    block: stone
     chance: 0.8
   GRANITE:
-    block: 1
-    data: 1
+    block: granite
     chance: 0.01
   DIORITE:
-    block: 1
-    data: 3
+    block: diorite
     chance: 0.01
   ANDESITE:
-    block: 1
-    data: 5
+    block: andesite
     chance: 0.01
   COARSEDIRT:
-    block: 3
-    data: 1
+    block: coarse_dirt
     chance: 0.01
-biome: EXTREME_HILLS
+biome: SNOWY_MOUNTAINS
 surfaceLayerHeight: 4
 snow: true
 floraChance: 10.0
 floraTypes:
   grass:
-    block: 31
-    data: 1
+    block: grass
     chance: 0.8
   farn:
-    block: 31
-    data: 2
+    block: fern
     chance: 0.2
 treeChance: 0.0
 treeTypes: null

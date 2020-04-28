@@ -1,16 +1,13 @@
 package io.github.apfelcreme.BitmapGenerator;
 
 import io.github.apfelcreme.BitmapGenerator.Populator.*;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.material.MaterialData;
 
-import java.awt.image.BufferedImage;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -50,16 +47,16 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                 int imageCoordZ = z * 16 + cZ;
                 BiomeDefinition biomeDefinition = worldConfiguration.getBiomeDefinition(imageCoordX, imageCoordZ);
                 if (biomeDefinition != null) {
-                    biome.setBiome(cX, cZ, biomeDefinition.getBiome());
                     data.setBlock(cX, 0, cZ, Material.BEDROCK);
                     int highestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
                     int riverDepth = worldConfiguration.getRiverDepth(imageCoordX, imageCoordZ);
                     for (int cY = 1; cY <= Math.max(highestBlock, worldConfiguration.getWaterHeight()); cY++) {
+                        biome.setBiome(cX, cY, cZ, biomeDefinition.getBiome());
 
                         if (riverDepth > 0 && cY <= highestBlock && cY > highestBlock - riverDepth) {
                             // fill with water (if there is a river)
                             if (biomeDefinition.getBiome() != Biome.FROZEN_RIVER && biomeDefinition.getBiome() != Biome.RIVER) {
-                                biome.setBiome(cX, cZ, Biome.RIVER);
+                                biome.setBiome(cX, cY, cZ, Biome.RIVER);
                             }
                             if (cY < highestBlock) { // Make river water one block below surface
                                 data.setBlock(cX, cY, cZ, Material.WATER);
@@ -78,7 +75,7 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                         // Fill everything under the waterHeight-level with water
                         if ((data.getType(cX, cY, cZ) == null || data.getType(cX, cY, cZ) == Material.AIR)
                                 && cY <= worldConfiguration.getWaterHeight()) {
-                            data.setBlock(cX, cY, cZ, new MaterialData(Material.WATER));
+                            data.setBlock(cX, cY, cZ, Material.WATER);
                         }
                     }
                 } else {
@@ -94,6 +91,26 @@ public class BitmapWorldGenerator extends ChunkGenerator {
         return data;
     }
 
+    @Override
+    public boolean shouldGenerateCaves() {
+        return worldConfiguration.isGeneratingVanillaCaves();
+    }
+
+    @Override
+    public boolean shouldGenerateDecorations() {
+        return worldConfiguration.isGeneratingVanillaDecorations();
+    }
+
+    @Override
+    public boolean shouldGenerateMobs() {
+        return worldConfiguration.isGeneratingVanillaMobs();
+    }
+
+    @Override
+    public boolean shouldGenerateStructures() {
+        return worldConfiguration.isGeneratingVanillaStructures();
+    }
+
     /**
      * calls all populators in a given order
      *
@@ -102,14 +119,16 @@ public class BitmapWorldGenerator extends ChunkGenerator {
      */
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
-        return Arrays.asList(
-                new CavePopulator(worldConfiguration),
-                new TreePopulator(worldConfiguration),
-                new SnowPopulator(worldConfiguration),
-                new SchematicPopulator(worldConfiguration),
-                new FloraPopulator(worldConfiguration),
-                new OrePopulator(worldConfiguration)
-        );
+        List<BlockPopulator> blockPopulators = new ArrayList<>();
+        if (!worldConfiguration.isGeneratingVanillaCaves()) {
+            blockPopulators.add(new CavePopulator(worldConfiguration));
+        }
+        blockPopulators.add(new TreePopulator(worldConfiguration));
+        blockPopulators.add(new SnowPopulator(worldConfiguration));
+        blockPopulators.add(new SchematicPopulator(worldConfiguration));
+        blockPopulators.add(new FloraPopulator(worldConfiguration));
+        blockPopulators.add(new OrePopulator(worldConfiguration));
+        return blockPopulators;
     }
 
 }

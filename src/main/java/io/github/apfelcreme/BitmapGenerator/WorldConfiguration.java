@@ -1,8 +1,8 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.util.io.Closer;
 import org.bukkit.Chunk;
@@ -10,8 +10,8 @@ import org.bukkit.Material;
 import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.noise.NoiseGenerator;
 import org.bukkit.util.noise.PerlinNoiseGenerator;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
@@ -67,6 +67,11 @@ public class WorldConfiguration {
     private BiomeDefinition[][] biomeMap = null;
     private Integer[][] heightMap = null;
     private Integer[][] riverMap = null;
+
+    private boolean vanillaCaves;
+    private boolean vanillaDecorations;
+    private boolean vanillaMobs;
+    private boolean vanillaStructures;
 
     private double caveRadius;
     private double noise;
@@ -143,6 +148,12 @@ public class WorldConfiguration {
             caveSeed = worldConfig.getLong("caveSeed");
             heightSeed = worldConfig.getLong("heightSeed");
             snowSeed = worldConfig.getLong("snowSeed");
+
+            this.vanillaCaves = worldConfig.getBoolean("vanilla.caves", false);
+            this.vanillaDecorations = worldConfig.getBoolean("vanilla.decoration", false);
+            this.vanillaMobs = worldConfig.getBoolean("vanilla.mobs", false);
+            this.vanillaStructures = worldConfig.getBoolean("vanilla.structures", false);
+
             this.caveRadius = worldConfig.getDouble("caveRadius", 3.9d);
             this.noise = worldConfig.getDouble("noise", 48);
             this.snowNoise = worldConfig.getDouble("snowNoise", 24);
@@ -392,23 +403,23 @@ public class WorldConfiguration {
             Biome biome = Biome.valueOf(biomeConfig.getString("biome"));
             int surfaceLayerHeight = biomeConfig.getInt("surfaceLayerHeight");
             boolean snowfall = biomeConfig.getBoolean("snow");
-            List<BiomeDefinition.BlockData> blocks = new ArrayList<>();
+            List<BiomeDefinition.BlockChance> blocks = new ArrayList<>();
             if (biomeConfig.get("blocks") != null) {
                 for (String materialName : biomeConfig.getConfigurationSection("blocks").getKeys(false)) {
-                    Material block = Material.getMaterial(biomeConfig.getInt("blocks." + materialName + ".block"));
-                    byte data = (byte) biomeConfig.getInt("blocks." + materialName + ".data");
+                    Material material = Material.matchMaterial(biomeConfig.getString("blocks." + materialName + ".block"));
+                    BlockData blockData = plugin.getServer().createBlockData(material, biomeConfig.getString("blocks." + materialName + ".data", ""));
                     double chance = biomeConfig.getDouble("blocks." + materialName + ".chance");
-                    blocks.add(new BiomeDefinition.BlockData(new MaterialData(block, data), chance));
+                    blocks.add(new BiomeDefinition.BlockChance(blockData, chance));
                 }
             }
             double floraCount = biomeConfig.getDouble("floraChance");
-            List<BiomeDefinition.BlockData> floraTypes = new ArrayList<>();
+            List<BiomeDefinition.BlockChance> floraTypes = new ArrayList<>();
             if (biomeConfig.get("floraTypes") != null) {
                 for (String floraName : biomeConfig.getConfigurationSection("floraTypes").getKeys(false)) {
-                    Material block = Material.getMaterial(biomeConfig.getInt("floraTypes." + floraName + ".block"));
-                    byte data = (byte) biomeConfig.getInt("floraTypes." + floraName + ".data");
+                    Material material = Material.matchMaterial(biomeConfig.getString("floraTypes." + floraName + ".block"));
+                    BlockData blockData = plugin.getServer().createBlockData(material, biomeConfig.getString("floraTypes." + floraName + ".data", ""));
                     double chance = biomeConfig.getDouble("floraTypes." + floraName + ".chance");
-                    floraTypes.add(new BiomeDefinition.BlockData(new MaterialData(block, data), chance));
+                    floraTypes.add(new BiomeDefinition.BlockChance(blockData, chance));
                 }
             }
             double treeCount = biomeConfig.getDouble("treeChance");
@@ -425,13 +436,13 @@ public class WorldConfiguration {
             List<BiomeDefinition.OreVein> veinTypes = new ArrayList<>();
             if (biomeConfig.get("veinTypes") != null) {
                 for (String veinName : biomeConfig.getConfigurationSection("veinTypes").getKeys(false)) {
-                    Material block = Material.getMaterial(biomeConfig.getInt("veinTypes." + veinName + ".block", worldConfig.getInt("veinTypes." + veinName + ".block")));
-                    byte data = (byte) biomeConfig.getInt("veinTypes." + veinName + ".data", worldConfig.getInt("veinTypes." + veinName + ".data"));
+                    Material material = Material.matchMaterial(biomeConfig.getString("veinTypes." + veinName + ".block", worldConfig.getString("veinTypes." + veinName + ".block")));
+                    BlockData blockData = plugin.getServer().createBlockData(material, biomeConfig.getString("veinTypes." + veinName + ".data", worldConfig.getString("veinTypes." + veinName + ".data", "")));
                     double chance = biomeConfig.getDouble("veinTypes." + veinName + ".chance", worldConfig.getInt("veinTypes." + veinName + ".chance"));
                     int length = biomeConfig.getInt("veinTypes." + veinName + ".length", worldConfig.getInt("veinTypes." + veinName + ".length"));
                     int stroke = biomeConfig.getInt("veinTypes." + veinName + ".stroke", worldConfig.getInt("veinTypes." + veinName + ".stroke"));
                     int maxHeight = biomeConfig.getInt("veinTypes." + veinName + ".max-height", worldConfig.getInt("veinTypes." + veinName + ".max-height", 255));
-                    veinTypes.add(new BiomeDefinition.OreVein(new MaterialData(block, data), chance, length, stroke, maxHeight));
+                    veinTypes.add(new BiomeDefinition.OreVein(blockData, chance, length, stroke, maxHeight));
                 }
             }
             double schematicCount = biomeConfig.getDouble("schematicChance");
@@ -481,7 +492,7 @@ public class WorldConfiguration {
             plugin.getLogger().log(Level.SEVERE, prefix + "No schematic found with the name " + filename + "!");
             return null;
         }
-        ClipboardFormat schemFormat = ClipboardFormat.findByFile(file);
+        ClipboardFormat schemFormat = ClipboardFormats.findByFile(file);
         if (schemFormat == null) {
             plugin.getLogger().log(Level.SEVERE, prefix + "Could not load schematic format from file " + file.getAbsolutePath() + "!");
             return null;
@@ -491,7 +502,7 @@ public class WorldConfiguration {
             FileInputStream fis = closer.register(new FileInputStream(file));
             BufferedInputStream bis = closer.register(new BufferedInputStream(fis));
             ClipboardReader reader = schemFormat.getReader(bis);
-            return reader.read(BukkitUtil.getLocalWorld(world).getWorldData());
+            return reader.read();
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, prefix + "Error loading file " + file.getAbsolutePath(), e);
             return null;
@@ -643,6 +654,22 @@ public class WorldConfiguration {
      */
     public double getNoise() {
         return noise;
+    }
+
+    public boolean isGeneratingVanillaCaves() {
+        return vanillaCaves;
+    }
+
+    public boolean isGeneratingVanillaDecorations() {
+        return vanillaDecorations;
+    }
+
+    public boolean isGeneratingVanillaMobs() {
+        return vanillaMobs;
+    }
+
+    public boolean isGeneratingVanillaStructures() {
+        return vanillaStructures;
     }
 
     public double getCaveRadius() {
