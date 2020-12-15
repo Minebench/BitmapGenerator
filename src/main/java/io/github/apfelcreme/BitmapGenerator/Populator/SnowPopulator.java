@@ -51,9 +51,10 @@ public class SnowPopulator extends BlockPopulator {
                         if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
                             for (int y = worldConfiguration.getHeight(snowX, snowZ); y < 255; y++) {
                                 Block block = world.getBlockAt(snowX, y, snowZ);
-                                if (block.getType() == Material.AIR && block.getRelative(BlockFace.DOWN).getType().isSolid()) {
+                                byte snowHeight = worldConfiguration.getSnowHeight(snowX, snowZ);
+                                if (snowHeight > 0 && block.getType() == Material.AIR && block.getRelative(BlockFace.DOWN).getType().isSolid()) {
                                     Snow snow = (Snow) Material.SNOW.createBlockData();
-                                    snow.setLayers(worldConfiguration.getSnowHeight(snowX, snowZ) + 1);
+                                    snow.setLayers(snowHeight);
                                     block.setBlockData(snow);
                                 }
                             }
