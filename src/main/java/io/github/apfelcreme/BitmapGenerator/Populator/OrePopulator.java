@@ -46,7 +46,7 @@ public class OrePopulator implements ChunkPopulator {
             veinCount = (int) biomeDefinition.getVeinChance();
         }
         for (int i = 0; i < veinCount; i++) {
-            BiomeDefinition.OreVein vein = biomeDefinition.nextVein();
+            BiomeDefinition.OreVein vein = biomeDefinition.nextVein(random);
             int maxHeight = Math.min(world.getMaxHeight(), vein.getMaxHeight());
             int startX = random.nextInt(10);
             int startY = 5 + random.nextInt((random.nextBoolean() ? maxHeight : Math.min(worldConfiguration.getWaterHeight(), maxHeight)) - 5);

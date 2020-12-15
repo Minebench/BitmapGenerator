@@ -78,7 +78,7 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                             // fill with the destined block
                             if (cY <= highestBlock && cY > (highestBlock - biomeDefinition.getSurfaceLayerHeight())) {
                                 // surface layer
-                                data.setBlock(cX, cY, cZ, biomeDefinition.nextBlock());
+                                data.setBlock(cX, cY, cZ, biomeDefinition.nextBlock(random));
                             } else if (cY <= (highestBlock - biomeDefinition.getSurfaceLayerHeight())) {
                                 // everything under the surface layer, ores and caves will be populated later
                                 data.setBlock(cX, cY, cZ, Material.STONE);

@@ -52,7 +52,7 @@ public class SchematicPopulator implements ChunkPopulator {
 
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
                 if (biomeDefinition.isGroundBlock(chunk.getBlockData(schematicX, schematicY - 1, schematicZ))) {
-                    BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
+                    BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
 
                     // initialize the values needed to rotate the schematic
                     int rotation = random.nextInt(4);

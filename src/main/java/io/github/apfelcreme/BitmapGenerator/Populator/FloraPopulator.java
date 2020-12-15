@@ -52,7 +52,7 @@ public class FloraPopulator implements ChunkPopulator {
             int floraZ = random.nextInt(16);
             int floraY = Util.getHighestBlock(world, chunk, floraX, floraZ) + 1;
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + floraX, (chunkX << 4) + floraZ).equals(biomeDefinition)) {
-                BlockData floraData = biomeDefinition.nextFloraData();
+                BlockData floraData = biomeDefinition.nextFloraData(random);
                 if (floraData != null
                         && chunk.getType(floraX, floraY, floraZ) == Material.AIR
                         && biomeDefinition.isGroundBlock(chunk.getBlockData(floraX, floraY - 1, floraZ))

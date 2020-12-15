@@ -210,10 +210,10 @@ public class BiomeDefinition {
      * returns a random blockData matching the quota
      *
      * @return a random blockData
+     * @param random
      */
-    public BlockData nextBlock() {
+    public BlockData nextBlock(Random random) {
         int totalSum = 0;
-        Random random = new Random();
         for (BlockChance blockChance : blocks) {
             totalSum += blockChance.chance * 100;
         }
@@ -230,10 +230,10 @@ public class BiomeDefinition {
      * returns a random flora matching the quota
      *
      * @return a random flora
+     * @param random
      */
-    public BlockData nextFloraData() {
+    public BlockData nextFloraData(Random random) {
         int totalSum = 0;
-        Random random = new Random();
         for (BlockChance flora : floraTypes) {
             totalSum += flora.chance * 100;
         }
@@ -250,10 +250,10 @@ public class BiomeDefinition {
      * returns a random tree matching the quota
      *
      * @return a random tree
+     * @param random
      */
-    public TreeData nextTree() {
+    public TreeData nextTree(Random random) {
         int totalSum = 0;
-        Random random = new Random();
         for (TreeData treeType : treeTypes) {
             totalSum += treeType.chance * 100;
         }
@@ -270,10 +270,10 @@ public class BiomeDefinition {
      * returns a random ore matching the quota
      *
      * @return a random ore
+     * @param random
      */
-    public OreVein nextVein() {
+    public OreVein nextVein(Random random) {
         int totalSum = 0;
-        Random random = new Random();
         for (OreVein veinType : veinTypes) {
             totalSum += veinType.chance * 100;
         }
@@ -290,10 +290,10 @@ public class BiomeDefinition {
      * returns a random schematic matching the quota
      *
      * @return a random schematic
+     * @param random
      */
-    public Schematic nextSchematic() {
+    public Schematic nextSchematic(Random random) {
         int totalSum = 0;
-        Random random = new Random();
         for (Schematic schematic : schematics) {
             totalSum += schematic.chance * 100;
         }

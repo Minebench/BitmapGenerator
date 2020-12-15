@@ -52,7 +52,7 @@ public class TreePopulator extends BlockPopulator {
                 int treeY = Util.getHighestBlock(world, treeX, treeZ) + 1;
                 if (biomeDefinition.isGroundBlock(world.getBlockAt(treeX, treeY - 1, treeZ))) {
                     if (worldConfiguration.getBiomeDefinition(treeX, treeZ).equals(biomeDefinition)) {
-                        BiomeDefinition.TreeData treeData = biomeDefinition.nextTree();
+                        BiomeDefinition.TreeData treeData = biomeDefinition.nextTree(random);
                         if (treeData != null) {
                             world.generateTree(new Location(world, treeX, treeY, treeZ), treeData.getType());
                         }
