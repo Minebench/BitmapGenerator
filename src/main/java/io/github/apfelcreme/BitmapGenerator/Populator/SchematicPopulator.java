@@ -54,7 +54,7 @@ public class SchematicPopulator extends BlockPopulator {
         for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
             double schematicCount;
             if (biomeDefinition.getSchematicChance() < 1) {
-                schematicCount = Math.random() <= biomeDefinition.getSchematicChance() ? 1 : 0;
+                schematicCount = random.nextDouble() <= biomeDefinition.getSchematicChance() ? 1 : 0;
             } else {
                 schematicCount = (int) biomeDefinition.getSchematicChance();
             }

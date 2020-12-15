@@ -49,7 +49,7 @@ public class FloraPopulator extends BlockPopulator {
         for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
             double floraCount;
             if (biomeDefinition.getFloraChance() < 1) {
-                floraCount = Math.random() <= biomeDefinition.getFloraChance() ? 1 : 0;
+                floraCount = random.nextDouble() <= biomeDefinition.getFloraChance() ? 1 : 0;
             } else {
                 floraCount = (int) biomeDefinition.getFloraChance();
             }

@@ -42,7 +42,7 @@ public class TreePopulator extends BlockPopulator {
         for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
             double treeCount;
             if (biomeDefinition.getTreeChance() < 1) {
-                treeCount = Math.random() <= biomeDefinition.getTreeChance() ? 1 : 0;
+                treeCount = random.nextDouble() <= biomeDefinition.getTreeChance() ? 1 : 0;
             } else {
                 treeCount = (int) biomeDefinition.getTreeChance();
             }

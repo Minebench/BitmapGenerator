@@ -44,7 +44,7 @@ public class OrePopulator extends BlockPopulator {
         for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
             double veinCount;
             if (biomeDefinition.getVeinChance() < 1) {
-                veinCount = Math.random() <= biomeDefinition.getVeinChance() ? 1 : 0;
+                veinCount = random.nextDouble() <= biomeDefinition.getVeinChance() ? 1 : 0;
             } else {
                 veinCount = (int) biomeDefinition.getVeinChance();
             }
