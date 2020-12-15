@@ -46,10 +46,10 @@ public class SnowPopulator implements ChunkPopulator {
                     if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
                         for (int y = worldConfiguration.getHeight(snowX, snowZ); y < world.getMaxHeight(); y++) {
                             byte snowHeight = worldConfiguration.getSnowHeight(snowX, snowZ);
-                            if (snowHeight > 0 && chunk.getType(snowX, y, snowZ) == Material.AIR && chunk.getType(snowX, y - 1, snowZ).isSolid()) {
+                            if (snowHeight > 0 && chunk.getType(x, y, z) == Material.AIR && chunk.getType(x, y - 1, z).isSolid()) {
                                 Snow snow = (Snow) Material.SNOW.createBlockData();
                                 snow.setLayers(snowHeight);
-                                chunk.setBlock(snowX, y, snowZ, snow);
+                                chunk.setBlock(x, y, z, snow);
                             }
                         }
                     }
