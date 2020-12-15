@@ -64,7 +64,6 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                     int highestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
                     int riverDepth = worldConfiguration.getRiverDepth(imageCoordX, imageCoordZ);
                     for (int cY = 1; cY <= Math.max(highestBlock, worldConfiguration.getWaterHeight()); cY++) {
-                        biome.setBiome(cX, cY, cZ, biomeDefinition.getBiome());
 
                         if (riverDepth > 0 && cY <= highestBlock && cY > highestBlock - riverDepth) {
                             // fill with water (if there is a river)
@@ -90,6 +89,9 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                                 && cY <= worldConfiguration.getWaterHeight()) {
                             data.setBlock(cX, cY, cZ, Material.WATER);
                         }
+                    }
+                    for (int cY = 0; cY < world.getMaxHeight(); cY++) {
+                        biome.setBiome(cX, cY, cZ, biomeDefinition.getBiome());
                     }
                 } else {
                     // No image-data for this chunk: fill with water
