@@ -53,7 +53,7 @@ public class SnowPopulator extends BlockPopulator {
                                 Block block = world.getBlockAt(snowX, y, snowZ);
                                 if (block.getType() == Material.AIR && block.getRelative(BlockFace.DOWN).getType().isSolid()) {
                                     Snow snow = (Snow) Material.SNOW.createBlockData();
-                                    snow.setLayers(worldConfiguration.getSnowHeight(snowX, snowZ));
+                                    snow.setLayers(worldConfiguration.getSnowHeight(snowX, snowZ) + 1);
                                     block.setBlockData(snow);
                                 }
                             }
