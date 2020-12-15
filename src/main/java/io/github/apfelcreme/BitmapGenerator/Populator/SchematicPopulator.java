@@ -118,9 +118,9 @@ public class SchematicPopulator implements ChunkPopulator {
                         for (int z = 0; z < 16; z++) {
                             int schemZ = (startZ + z) % schematicLength;
                             for (int y = 0; y < schematic.getDimensions().getBlockY(); y++) {
-                                BlockData block = schematic.getBlock(xMod * (northSouth ? schemX : schemZ), schematicOffset + y, zMod * (northSouth ? schemZ : schemX));
+                                BlockData block = schematic.getBlock(xMod * (northSouth ? schemX : schemZ), y, zMod * (northSouth ? schemZ : schemX));
                                 if (block != null && !block.getMaterial().isAir()) {
-                                    chunk.setBlock(x, y, z, block);
+                                    chunk.setBlock(x, schematicY + schematicOffset + y, z, block);
                                 }
                             }
                         }
