@@ -432,9 +432,9 @@ public class BiomeDefinition {
         }
 
         public BlockData getBlock(int x, int y, int z) {
-            if (x >= 0 && x < dimensions.getBlockX()
-                    && y >= 0 && y < dimensions.getBlockY()
-                    && z >= 0 && z < dimensions.getZ()) {
+            if (x >= 0 && x < blocks.length
+                    && y >= 0 && y < blocks[x].length
+                    && z >= 0 && z < blocks[x][y].length) {
                 return blocks[x][y][z];
             }
             return null;
