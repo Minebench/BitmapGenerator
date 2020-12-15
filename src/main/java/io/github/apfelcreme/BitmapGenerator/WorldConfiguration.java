@@ -179,21 +179,20 @@ public class WorldConfiguration {
             // create some directories
             if (!new File(worldFolder, "schematics").exists()) {
                 new File(worldFolder, "schematics").mkdirs();
+
+                // extract the schematic files
+                for (String schematicName : getSchematicFiles()) {
+                    Util.saveResource(plugin, schematicName, worldName);
+                }
             }
             if (!new File(worldFolder, "biomes").exists()) {
                 new File(worldFolder, "biomes").mkdirs();
-            }
 
-            // extract the biome files
-            for (String biomeFileName : getBiomeResourceFiles()) {
-                Util.saveResource(plugin, biomeFileName, worldName);
+                // extract the biome files
+                for (String biomeFileName : getBiomeResourceFiles()) {
+                    Util.saveResource(plugin, biomeFileName, worldName);
+                }
             }
-
-            // extract the schematic files
-            for (String schematicName : getSchematicFiles()) {
-                Util.saveResource(plugin, schematicName, worldName);
-            }
-
 
             File folder = new File(worldFolder, "biomes");
             if (folder.exists() && folder.isDirectory()) {
