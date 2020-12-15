@@ -1,5 +1,6 @@
 package io.github.apfelcreme.BitmapGenerator;
 
+import io.github.apfelcreme.BitmapGenerator.Populator.ChunkPopulator;
 import io.github.apfelcreme.BitmapGenerator.Populator.*;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -33,13 +34,24 @@ public class BitmapWorldGenerator extends ChunkGenerator {
 
     private WorldConfiguration worldConfiguration;
 
+    private List<ChunkPopulator> chunkPopulators = new ArrayList<>();
+
     public BitmapWorldGenerator(WorldConfiguration worldConfiguration) {
         this.worldConfiguration = worldConfiguration;
+        if (!worldConfiguration.isGeneratingVanillaCaves()) {
+            chunkPopulators.add(new CavePopulator(worldConfiguration));
+        }
+        chunkPopulators.add(new SchematicPopulator(worldConfiguration));
+        chunkPopulators.add(new FloraPopulator(worldConfiguration));
+        chunkPopulators.add(new SnowPopulator(worldConfiguration));
+        chunkPopulators.add(new OrePopulator(worldConfiguration));
     }
 
     @Override
     public synchronized ChunkData generateChunkData(World world, Random random, int x, int z, BiomeGrid biome) {
         ChunkData data = createChunkData(world);
+
+        List<BiomeDefinition> biomes = new ArrayList<>();
 
         for (int cX = 0; cX < 16; cX++) {
             for (int cZ = 0; cZ < 16; cZ++) {
@@ -47,6 +59,7 @@ public class BitmapWorldGenerator extends ChunkGenerator {
                 int imageCoordZ = z * 16 + cZ;
                 BiomeDefinition biomeDefinition = worldConfiguration.getBiomeDefinition(imageCoordX, imageCoordZ);
                 if (biomeDefinition != null) {
+                    biomes.add(biomeDefinition);
                     data.setBlock(cX, 0, cZ, Material.BEDROCK);
                     int highestBlock = worldConfiguration.getHeight(imageCoordX, imageCoordZ);
                     int riverDepth = worldConfiguration.getRiverDepth(imageCoordX, imageCoordZ);
@@ -88,6 +101,15 @@ public class BitmapWorldGenerator extends ChunkGenerator {
 
             }
         }
+
+        if (!biomes.isEmpty()) {
+            for (ChunkPopulator chunkPopulator : chunkPopulators) {
+                for (BiomeDefinition biomeDefinition : biomes) {
+                    chunkPopulator.populate(world, random, x, z, data, biomeDefinition);
+                }
+            }
+        }
+
         return data;
     }
 
@@ -120,14 +142,7 @@ public class BitmapWorldGenerator extends ChunkGenerator {
     @Override
     public List<BlockPopulator> getDefaultPopulators(World world) {
         List<BlockPopulator> blockPopulators = new ArrayList<>();
-        if (!worldConfiguration.isGeneratingVanillaCaves()) {
-            blockPopulators.add(new CavePopulator(worldConfiguration));
-        }
-        blockPopulators.add(new TreePopulator(worldConfiguration));
-        blockPopulators.add(new SnowPopulator(worldConfiguration));
-        blockPopulators.add(new SchematicPopulator(worldConfiguration));
-        blockPopulators.add(new FloraPopulator(worldConfiguration));
-        blockPopulators.add(new OrePopulator(worldConfiguration));
+        //blockPopulators.add(new TreePopulator(worldConfiguration));
         return blockPopulators;
     }
 

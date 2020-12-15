@@ -79,7 +79,7 @@ schematics:
     fileName: '__tanne_m2.schematic'
     yOffset: -2
     chance: 0.06
-  11:
+  20:
     fileName: '__tanne_m3.schematic'
     yOffset: -2
     chance: 0.06

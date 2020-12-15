@@ -3,17 +3,12 @@ package io.github.apfelcreme.BitmapGenerator.Populator;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.generator.BlockPopulator;
-import org.bukkit.material.MaterialData;
+import org.bukkit.generator.ChunkGenerator;
 
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
@@ -34,7 +29,7 @@ import java.util.Random;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class FloraPopulator extends BlockPopulator {
+public class FloraPopulator implements ChunkPopulator {
 
     private WorldConfiguration worldConfiguration;
 
@@ -45,27 +40,25 @@ public class FloraPopulator extends BlockPopulator {
 
 
     @Override
-    public synchronized void populate(World world, Random random, Chunk chunk) {
-        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-            double floraCount;
-            if (biomeDefinition.getFloraChance() < 1) {
-                floraCount = random.nextDouble() <= biomeDefinition.getFloraChance() ? 1 : 0;
-            } else {
-                floraCount = (int) biomeDefinition.getFloraChance();
-            }
-            for (int i = 0; i < floraCount; i++) {
-                int floraX = (chunk.getX() << 4) + random.nextInt(16);
-                int floraZ = (chunk.getZ() << 4) + random.nextInt(16);
-                int floraY = Util.getHighestBlock(world, floraX, floraZ) + 1;
-                if (worldConfiguration.getBiomeDefinition(floraX, floraZ).equals(biomeDefinition)) {
-                    BlockData floraData = biomeDefinition.nextFloraData();
-                    if (floraData != null) {
-                        if (biomeDefinition.isGroundBlock(world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                            if (canBePlanted(floraData, world.getBlockAt(floraX, floraY - 1, floraZ))) {
-                                world.getBlockAt(floraX, floraY, floraZ).setBlockData(floraData, false);
-                            }
-                        }
-                    }
+    public synchronized void populate(World world, Random random, int chunkX, int chunkZ, ChunkGenerator.ChunkData chunk, BiomeDefinition biomeDefinition) {
+        double floraCount;
+        if (biomeDefinition.getFloraChance() < 1) {
+            floraCount = random.nextDouble() <= biomeDefinition.getFloraChance() ? 1 : 0;
+        } else {
+            floraCount = (int) biomeDefinition.getFloraChance();
+        }
+        for (int i = 0; i < floraCount; i++) {
+            int floraX = random.nextInt(16);
+            int floraZ = random.nextInt(16);
+            int floraY = Util.getHighestBlock(world, chunk, floraX, floraZ) + 1;
+            if (worldConfiguration.getBiomeDefinition((chunkX << 4) + floraX, (chunkX << 4) + floraZ).equals(biomeDefinition)) {
+                BlockData floraData = biomeDefinition.nextFloraData();
+                if (floraData != null
+                        && chunk.getType(floraX, floraY, floraZ) == Material.AIR
+                        && biomeDefinition.isGroundBlock(chunk.getBlockData(floraX, floraY - 1, floraZ))
+                        && canBePlanted(floraData, chunk.getType(floraX, floraY - 1, floraZ))
+                        && chunk.getType(floraX, floraY + 1, floraZ).isAir()) {
+                    chunk.setBlock(floraX, floraY, floraZ, floraData);
                 }
             }
         }
@@ -78,12 +71,12 @@ public class FloraPopulator extends BlockPopulator {
      * @param groundBlock the block
      * @return true if it can be planted there, false otherwise
      */
-    private boolean canBePlanted(BlockData flora, Block groundBlock) {
+    private boolean canBePlanted(BlockData flora, Material groundBlock) {
         if (Tag.FLOWERS.isTagged(flora.getMaterial())) {
-            if (groundBlock.getType() != Material.GRASS && groundBlock.getType() != Material.DIRT) {
+            if (groundBlock != Material.GRASS && groundBlock != Material.DIRT) {
                 return false;
             }
         }
-        return groundBlock.getRelative(BlockFace.UP).isEmpty();
+        return true;
     }
 }

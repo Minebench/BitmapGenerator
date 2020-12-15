@@ -1,25 +1,12 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.math.BlockVector3;
-import com.sk89q.worldedit.math.transform.AffineTransform;
-import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.world.block.BlockState;
-import com.sk89q.worldedit.world.block.BlockType;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.generator.BlockPopulator;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.generator.ChunkGenerator;
 
 import java.util.Random;
 
@@ -41,7 +28,7 @@ import java.util.Random;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class SchematicPopulator extends BlockPopulator {
+public class SchematicPopulator implements ChunkPopulator {
 
     private WorldConfiguration worldConfiguration;
 
@@ -50,93 +37,92 @@ public class SchematicPopulator extends BlockPopulator {
     }
 
     @Override
-    public synchronized void populate(World world, Random random, Chunk chunk) {
-        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-            double schematicCount;
-            if (biomeDefinition.getSchematicChance() < 1) {
-                schematicCount = random.nextDouble() <= biomeDefinition.getSchematicChance() ? 1 : 0;
-            } else {
-                schematicCount = (int) biomeDefinition.getSchematicChance();
-            }
-            for (int i = 0; i < schematicCount; i++) {
+    public synchronized void populate(World world, Random random, int chunkX, int chunkZ, ChunkGenerator.ChunkData chunk, BiomeDefinition biomeDefinition) {
+        double schematicCount;
+        if (biomeDefinition.getSchematicChance() < 1) {
+            schematicCount = random.nextDouble() <= biomeDefinition.getSchematicChance() ? 1 : 0;
+        } else {
+            schematicCount = (int) biomeDefinition.getSchematicChance();
+        }
+        for (int i = 0; i < schematicCount; i++) {
 
-                int schematicX = (chunk.getX() << 4) + random.nextInt(16);
-                int schematicZ = (chunk.getZ() << 4) + random.nextInt(16);
-                int schematicY = Util.getHighestBlock(world, schematicX, schematicZ) + 1;
+            int schematicX = random.nextInt(16);
+            int schematicZ = random.nextInt(16);
+            int schematicY = Util.getHighestBlock(world, chunk, schematicX, schematicZ) + 1;
 
-                if (worldConfiguration.getBiomeDefinition(schematicX, schematicZ).equals(biomeDefinition)) {
-                    if (biomeDefinition.isGroundBlock(world.getBlockAt(schematicX, schematicY - 1, schematicZ))) {
-                        BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
+            if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
+                if (biomeDefinition.isGroundBlock(chunk.getBlockData(schematicX, schematicY - 1, schematicZ))) {
+                    BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic();
 
-                        // initialize the values needed to rotate the schematic
-                        int rotation = random.nextInt(4);
-                        // Whether or not the schematic points into north or south direction
-                        boolean northSouth = rotation % 2 == 0;
-                        int xMod;
-                        int zMod;
-                        int xStart = schematic.getClipboard().getMinimumPoint().getBlockX();
-                        int yStart = schematic.getClipboard().getMinimumPoint().getBlockY();
-                        int zStart = schematic.getClipboard().getMinimumPoint().getBlockZ();
-                        if (rotation < 2) {
-                            xMod = 1;
-                        } else {
-                            xMod = -1;
-                            xStart += schematic.getClipboard().getDimensions().getBlockX() - 1;
-                        }
-                        if (rotation > 0 && rotation < 3) {
-                            zMod = -1;
-                            zStart += schematic.getClipboard().getDimensions().getBlockZ() - 1;
-                        } else {
-                            zMod = 1;
-                        }
+                    // initialize the values needed to rotate the schematic
+                    int rotation = random.nextInt(4);
+                    // Whether or not the schematic points into north or south direction
+                    boolean northSouth = rotation % 2 == 0;
+                    int xMod;
+                    int zMod;
+                    if (rotation < 2) {
+                        xMod = 1;
+                    } else {
+                        xMod = -1;
+                    }
+                    if (rotation > 0 && rotation < 3) {
+                        zMod = -1;
+                    } else {
+                        zMod = 1;
+                    }
 
-                        int schematicWidth = northSouth
-                                ? schematic.getClipboard().getDimensions().getBlockX()
-                                : schematic.getClipboard().getDimensions().getBlockZ();
-                        int schematicHeight = schematic.getClipboard().getDimensions().getBlockY();
-                        int schematicLength = northSouth
-                                ? schematic.getClipboard().getDimensions().getBlockZ()
-                                : schematic.getClipboard().getDimensions().getBlockX();
-                        // Try putting schematic on floor
-                        int schematicOffset = schematic.getYOffset();
-                        boolean foundSolid = false;
-                        for (int testedY = 0; testedY < schematicHeight && !foundSolid; testedY++) {
-                            for (int x = 0; x < schematicWidth; x++) {
-                                for (int z = 0; z < schematicLength; z++) {
-                                    // Create the rotated vector
-                                    BlockVector3 rotatedVector = BlockVector3.at(xStart + xMod * (northSouth ? x : z), yStart + testedY, zStart + zMod * (northSouth ? z : x));
-                                    BlockState b = schematic.getClipboard().getBlock(rotatedVector);
-                                    if (b != null && !b.getBlockType().getMaterial().isAir()) {
-                                        for (int offset = schematicOffset; yStart + offset > 0; offset--) {
-                                            Block block = world.getBlockAt(
-                                                    schematicX + x - (schematicWidth / 2),
-                                                    schematicY + offset - 1,
-                                                    schematicZ + z - (schematicLength / 2));
-                                            if (block.getType().isOccluding()) {
-                                                schematicOffset = offset;
-                                                foundSolid = true;
-                                                break;
-                                            }
+                    int schematicWidth = northSouth
+                            ? schematic.getDimensions().getBlockX()
+                            : schematic.getDimensions().getBlockZ();
+                    int schematicHeight = schematic.getDimensions().getBlockY();
+                    int schematicLength = northSouth
+                            ? schematic.getDimensions().getBlockZ()
+                            : schematic.getDimensions().getBlockX();
+
+                    int startX = (chunkX * 16 - schematicWidth / 2) % schematicWidth;
+                    while (startX < 0) {
+                        startX = schematicWidth + startX;
+                    }
+                    int startZ = (chunkZ * 16 - schematicLength / 2) % schematicLength;
+                    while (startZ < 0) {
+                        startZ = schematicLength + startZ;
+                    }
+
+                    // Try putting schematic on floor
+                    int schematicOffset = schematic.getYOffset();
+                    boolean foundSolid = false;
+                    for (int testedY = 0; testedY < schematicHeight && !foundSolid; testedY++) {
+                        for (int x = 0; x < schematicWidth; x++) {
+                            for (int z = 0; z < schematicLength; z++) {
+                                // Create the rotated vector
+                                BlockData b = schematic.getBlock(xMod * (northSouth ? x : z), testedY, zMod * (northSouth ? z : x));
+                                if (b != null && !b.getMaterial().isAir()) {
+                                    for (int offset = schematicOffset; offset > 0; offset--) {
+                                        Material type = chunk.getType(
+                                                schematicX + x - (schematicWidth / 2),
+                                                schematicY + offset - 1,
+                                                schematicZ + z - (schematicLength / 2));
+                                        if (type.isOccluding()) {
+                                            schematicOffset = offset;
+                                            foundSolid = true;
+                                            break;
                                         }
                                     }
                                 }
                             }
                         }
+                    }
 
-                        try {
-                            EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(BukkitAdapter.adapt(world), Integer.MAX_VALUE);
-                            LocalSession session = new LocalSession();
-                            session.setClipboard(new ClipboardHolder(schematic.getClipboard()));
-                            session.getClipboard().setTransform(new AffineTransform().rotateY(rotation * 90));
-                            Operation operation = session.getClipboard()
-                                    .createPaste(editSession)
-                                    .ignoreAirBlocks(true)
-                                    .to(BlockVector3.at(schematicX - schematicWidth / 2, schematicY + schematicOffset, schematicZ - schematicLength / 2))
-                                    .build();
-                            Operations.complete(operation);
-                            editSession.flushSession();
-                        } catch (WorldEditException e) {
-                            e.printStackTrace();
+                    for (int x = 0; x < 16; x++) {
+                        int schemX = (startX + x) % schematicWidth;
+                        for (int z = 0; z < 16; z++) {
+                            int schemZ = (startZ + z) % schematicLength;
+                            for (int y = 0; y < schematic.getDimensions().getBlockY(); y++) {
+                                BlockData block = schematic.getBlock(xMod * (northSouth ? schemX : schemZ), schematicOffset + y, zMod * (northSouth ? schemZ : schemX));
+                                if (block != null && !block.getMaterial().isAir()) {
+                                    chunk.setBlock(x, y, z, block);
+                                }
+                            }
                         }
                     }
                 }

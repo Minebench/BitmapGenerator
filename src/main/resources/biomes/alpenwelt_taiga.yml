@@ -9,7 +9,7 @@ blocks:
     block: coarse_dirt
     chance: 0.2
   PODSOL:
-    block: dirt
+    block: podzol
     chance: 0.25
   GRAVEL:
     block: gravel

@@ -1,6 +1,7 @@
 package io.github.apfelcreme.BitmapGenerator;
 
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.math.BlockVector3;
 import org.bukkit.TreeType;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -186,13 +187,23 @@ public class BiomeDefinition {
      * false if not (random block when populating is for example leaves from a generated tree. you dont want to put grass on that)
      */
     public boolean isGroundBlock(Block block) {
-        boolean isGround = false;
+        return isGroundBlock(block.getBlockData());
+    }
+
+    /**
+     * checks if a given block ore is one of the ground blocks defined in the config
+     *
+     * @param blockData a block's data (e.g. when populating flora)
+     * @return true, if the block found is one of the defined blocks,
+     * false if not (random block when populating is for example leaves from a generated tree. you dont want to put grass on that)
+     */
+    public boolean isGroundBlock(BlockData blockData) {
         for (BlockChance blockChance : blocks) {
-            if (block.getBlockData().matches(blockChance.blockData)) {
-                isGround = true;
+            if (blockData.matches(blockChance.blockData)) {
+                return true;
             }
         }
-        return isGround;
+        return false;
     }
 
     /**
@@ -389,20 +400,26 @@ public class BiomeDefinition {
      * a class to represent a schematic and its probability to be pasted
      */
     public static class Schematic {
-        private String name;
-        private Clipboard clipboard;
-        private int yOffset;
-        private double chance;
+        private final String name;
+        private final BlockVector3 dimensions;
+        private final BlockData[][][] blocks;
+        private final int yOffset;
+        private final double chance;
 
         public Schematic(String name, Clipboard clipboard, int yOffset, double chance) {
             this.name = name;
-            this.clipboard = clipboard;
+            this.dimensions = clipboard.getDimensions();
+            this.blocks = Util.getBlocks(clipboard);
             this.yOffset = yOffset;
             this.chance = chance;
         }
 
-        public Clipboard getClipboard() {
-            return clipboard;
+        public BlockData[][][] getBlocks() {
+            return blocks;
+        }
+
+        public BlockVector3 getDimensions() {
+            return dimensions;
         }
 
         public int getYOffset() {
@@ -412,6 +429,15 @@ public class BiomeDefinition {
         @Override
         public String toString() {
             return name + "*" + chance;
+        }
+
+        public BlockData getBlock(int x, int y, int z) {
+            if (x >= 0 && x < dimensions.getBlockX()
+                    && y >= 0 && y < dimensions.getBlockY()
+                    && z >= 0 && z < dimensions.getZ()) {
+                return blocks[x][y][z];
+            }
+            return null;
         }
     }
 

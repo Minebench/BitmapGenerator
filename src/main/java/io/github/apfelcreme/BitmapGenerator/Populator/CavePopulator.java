@@ -1,13 +1,11 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
+import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.generator.BlockPopulator;
+import org.bukkit.generator.ChunkGenerator;
 
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
@@ -28,7 +26,7 @@ import java.util.Random;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class CavePopulator extends BlockPopulator {
+public class CavePopulator implements ChunkPopulator {
 
     private WorldConfiguration worldConfiguration;
 
@@ -37,24 +35,23 @@ public class CavePopulator extends BlockPopulator {
     }
 
     @Override
-    public void populate(World world, Random random, Chunk chunk) {
+    public synchronized void populate(World world, Random random, int chunkX, int chunkZ, ChunkGenerator.ChunkData chunk, BiomeDefinition biomeDefinition) {
         double radius = worldConfiguration.getCaveRadius();
         for (int x = 0; x < 16; x++) {
-            int coordX = (chunk.getX() << 4) + x;
+            int coordX = (chunkX << 4) + x;
             for (int z = 0; z < 16; z++) {
-                int coordZ = (chunk.getZ() << 4) + z;
+                int coordZ = (chunkZ << 4) + z;
                 if (worldConfiguration.isCave(coordX, coordZ)) {
                     int coordY = worldConfiguration.getCaveHeight(coordX, coordZ);
                     if (coordY > 5) {
-                        Block block = world.getBlockAt(coordX, coordY, coordZ);
-                        if (block.getType() != Material.AIR ) {
+                        Material type = chunk.getType(x, coordY, coordZ);
+                        if (!type.isAir()) {
                             // TODO: make this somehow nicer :(
                             for (int rX = (int) (coordX - radius); rX < coordX + radius; rX++) {
                                 for (int rY = (int) (coordY - radius); rY < coordY + radius; rY++) {
                                     for (int rZ = (int) (coordZ - radius); rZ < coordZ + radius; rZ++) {
-                                        if (block.getType() == Material.STONE
-                                                && block.getLocation().distance(world.getBlockAt(rX, rY, rZ).getLocation()) <= radius) {
-                                            world.getBlockAt(rX, rY, rZ).setType(Material.AIR, false);
+                                        if (type == Material.STONE) {
+                                            chunk.setBlock(rX, rY, rZ, Material.AIR);
                                         }
                                     }
                                 }

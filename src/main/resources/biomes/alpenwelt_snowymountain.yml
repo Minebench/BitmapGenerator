@@ -17,7 +17,7 @@ blocks:
   COARSEDIRT:
     block: COARSE_DIRT
     chance: 0.01
-biome: SNOWY_TAIGA_MOUNTAINS
+biome: SNOWY_MOUNTAINS
 surfaceLayerHeight: 4
 snow: true
 floraChance: 10.0

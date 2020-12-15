@@ -3,15 +3,11 @@ package io.github.apfelcreme.BitmapGenerator.Populator;
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
 import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Snow;
-import org.bukkit.generator.BlockPopulator;
+import org.bukkit.generator.ChunkGenerator;
 
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
@@ -32,7 +28,7 @@ import java.util.Random;
  *
  * @author Lord36 aka Apfelcreme
  */
-public class SnowPopulator extends BlockPopulator {
+public class SnowPopulator implements ChunkPopulator {
 
     private WorldConfiguration worldConfiguration;
 
@@ -41,22 +37,19 @@ public class SnowPopulator extends BlockPopulator {
     }
 
     @Override
-    public synchronized void populate(World world, Random random, Chunk chunk) {
-        for (BiomeDefinition biomeDefinition : worldConfiguration.getDistinctChunkBiomes(chunk)) {
-            if (biomeDefinition.isSnowfall()) {
-                for (int x = 0; x < 16; x++) {
-                    for (int z = 0; z < 16; z++) {
-                        int snowX = (chunk.getX() << 4) + x;
-                        int snowZ = (chunk.getZ() << 4) + z;
-                        if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
-                            for (int y = worldConfiguration.getHeight(snowX, snowZ); y < 255; y++) {
-                                Block block = world.getBlockAt(snowX, y, snowZ);
-                                byte snowHeight = worldConfiguration.getSnowHeight(snowX, snowZ);
-                                if (snowHeight > 0 && block.getType() == Material.AIR && block.getRelative(BlockFace.DOWN).getType().isSolid()) {
-                                    Snow snow = (Snow) Material.SNOW.createBlockData();
-                                    snow.setLayers(snowHeight);
-                                    block.setBlockData(snow);
-                                }
+    public synchronized void populate(World world, Random random, int chunkX, int chunkZ, ChunkGenerator.ChunkData chunk, BiomeDefinition biomeDefinition) {
+        if (biomeDefinition.isSnowfall()) {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    int snowX = (chunkX << 4) + x;
+                    int snowZ = (chunkZ << 4) + z;
+                    if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
+                        for (int y = worldConfiguration.getHeight(snowX, snowZ); y < world.getMaxHeight(); y++) {
+                            byte snowHeight = worldConfiguration.getSnowHeight(snowX, snowZ);
+                            if (snowHeight > 0 && chunk.getType(snowX, y, snowZ) == Material.AIR && chunk.getType(snowX, y - 1, snowZ).isSolid()) {
+                                Snow snow = (Snow) Material.SNOW.createBlockData();
+                                snow.setLayers(snowHeight);
+                                chunk.setBlock(snowX, y, snowZ, snow);
                             }
                         }
                     }

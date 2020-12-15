@@ -1,9 +1,12 @@
 package io.github.apfelcreme.BitmapGenerator;
 
-import org.bukkit.Material;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.math.BlockVector3;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.generator.ChunkGenerator;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,12 +65,50 @@ public class Util {
      * @return the highest block at a position which isn't air or leaves or any other non-occluding block
      */
     public static int getHighestBlock(World world, int x, int z) {
-        for (int y = 255; y > 0; y--) {
+        for (int y = world.getMaxHeight(); y > 0; y--) {
             Block b = world.getBlockAt(x, y, z);
             if (b.getType().isOccluding()) {
                 return y;
             }
         }
         return 1;
+    }
+
+    /**
+     * returns the highest block at a position which isn't air or leaves or any other non-occluding block
+     *
+     * @param world     the world
+     * @param chunkData The chunk data to search in
+     * @param x         the chunk x coordinate
+     * @param z         the chunk z coordinate
+     * @return the highest block at a position which isn't air or leaves or any other non-occluding block
+     */
+    public static int getHighestBlock(World world, ChunkGenerator.ChunkData chunkData, int x, int z) {
+        for (int y = world.getMaxHeight(); y > 0; y--) {
+            if (chunkData.getType(x, y, z).isOccluding()) {
+                return y;
+            }
+        }
+        return 1;
+    }
+
+    /**
+     * Get the blocks from a clipboard
+     * @param clipboard
+     * @return
+     */
+    public static BlockData[][][] getBlocks(Clipboard clipboard) {
+        int diffX = clipboard.getMaximumPoint().getX() - clipboard.getMinimumPoint().getX();
+        int diffY = clipboard.getMaximumPoint().getY() - clipboard.getMinimumPoint().getY();
+        int diffZ = clipboard.getMaximumPoint().getZ() - clipboard.getMinimumPoint().getZ();
+        BlockData[][][] blocks = new BlockData[diffX][diffY][diffZ];
+        for (int x = 0; x < diffX; x++) {
+            for (int y = 0; y < diffY; y++) {
+                for (int z = 0; z < diffZ; z++) {
+                    blocks[x][y][z] = BukkitAdapter.adapt(clipboard.getFullBlock(clipboard.getMinimumPoint().add(x, y, z)));
+                }
+            }
+        }
+        return blocks;
     }
 }
