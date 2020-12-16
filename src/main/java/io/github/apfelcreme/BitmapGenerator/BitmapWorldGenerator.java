@@ -44,8 +44,8 @@ public class BitmapWorldGenerator extends ChunkGenerator {
         }
         chunkPopulators.add(new OrePopulator(worldConfiguration));
         chunkPopulators.add(new SchematicPopulator(worldConfiguration));
-        chunkPopulators.add(new FloraPopulator(worldConfiguration));
         chunkPopulators.add(new SnowPopulator(worldConfiguration));
+        chunkPopulators.add(new FloraPopulator(worldConfiguration));
     }
 
     public Location getFixedSpawnLocation(World world, Random random) {
