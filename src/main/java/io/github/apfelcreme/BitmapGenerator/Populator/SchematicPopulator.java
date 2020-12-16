@@ -40,13 +40,6 @@ public class SchematicPopulator implements ChunkPopulator {
 
     @Override
     public synchronized void populate(World world, Random random, int chunkX, int chunkZ, ChunkGenerator.ChunkData chunk, BiomeDefinition biomeDefinition) {
-        double schematicCount;
-        if (biomeDefinition.getSchematicChance() < 1) {
-            schematicCount = random.nextDouble() <= biomeDefinition.getSchematicChance() ? 1 : 0;
-        } else {
-            schematicCount = (int) biomeDefinition.getSchematicChance();
-        }
-
         int searchRadius = (int) Math.ceil(biomeDefinition.getMaxSchematicSize() / 16d);
 
         List<ChunkCoord> schemCoords = new ArrayList<>();
@@ -57,6 +50,14 @@ public class SchematicPopulator implements ChunkPopulator {
                 chunkSeed = 37 * chunkSeed + x;
                 chunkSeed = 37 * chunkSeed + z;
                 Random chunkRandom = new Random(chunkSeed);
+
+                double schematicCount;
+                if (biomeDefinition.getSchematicChance() < 1) {
+                    schematicCount = chunkRandom.nextDouble() <= biomeDefinition.getSchematicChance() ? 1 : 0;
+                } else {
+                    schematicCount = (int) biomeDefinition.getSchematicChance();
+                }
+
                 for (int i = 0; i < schematicCount; i++) {
                     schemCoords.add(new ChunkCoord(chunkRandom.nextInt(16), chunkRandom.nextInt(16)));
                 }
