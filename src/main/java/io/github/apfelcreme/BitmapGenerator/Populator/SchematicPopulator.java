@@ -8,6 +8,8 @@ import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.generator.ChunkGenerator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -44,14 +46,33 @@ public class SchematicPopulator implements ChunkPopulator {
         } else {
             schematicCount = (int) biomeDefinition.getSchematicChance();
         }
-        for (int i = 0; i < schematicCount; i++) {
 
-            int schematicX = random.nextInt(16);
-            int schematicZ = random.nextInt(16);
-            int schematicY = Util.getHighestBlock(world, chunk, schematicX, schematicZ) + 1;
+        int searchRadius = (int) Math.ceil(biomeDefinition.getMaxSchematicSize() / 16d);
+
+        List<ChunkCoord> schemCoords = new ArrayList<>();
+
+        for (int x = -searchRadius; x <= searchRadius; x++) {
+            for (int z = -searchRadius; z <= searchRadius; z++) {
+                long chunkSeed = world.getSeed();
+                chunkSeed = 37 * chunkSeed + x;
+                chunkSeed = 37 * chunkSeed + z;
+                Random chunkRandom = new Random(chunkSeed);
+                for (int i = 0; i < schematicCount; i++) {
+                    schemCoords.add(new ChunkCoord(chunkRandom.nextInt(16), chunkRandom.nextInt(16)));
+                }
+            }
+        }
+
+        for (ChunkCoord coord : schemCoords) {
+            int schematicX = coord.getX();
+            int schematicZ = coord.getZ();
+            int inChunkX = Math.min(Math.max(schematicX, 0), 15);
+            int inChunkZ = Math.min(Math.max(schematicZ, 0), 15);
+
+            int schematicY = Util.getHighestBlock(world, chunk, inChunkX, inChunkZ) + 1;
 
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
-                if (biomeDefinition.isGroundBlock(chunk.getBlockData(schematicX, schematicY - 1, schematicZ))) {
+                if (biomeDefinition.isGroundBlock(chunk.getBlockData(inChunkX, schematicY - 1, inChunkZ))) {
                     BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
 
                     // initialize the values needed to rotate the schematic
@@ -127,6 +148,24 @@ public class SchematicPopulator implements ChunkPopulator {
                     }
                 }
             }
+        }
+    }
+
+    private class ChunkCoord {
+        private final int x;
+        private final int z;
+
+        private ChunkCoord(int x, int z) {
+            this.x = x;
+            this.z = z;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getZ() {
+            return z;
         }
     }
 }

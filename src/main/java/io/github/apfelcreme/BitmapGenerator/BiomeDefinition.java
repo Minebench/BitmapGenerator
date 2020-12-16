@@ -44,6 +44,7 @@ public class BiomeDefinition {
     private List<OreVein> veinTypes;
     private double schematicChance;
     private List<Schematic> schematics;
+    private int maxSchematicSize = 0;
 
 
     public BiomeDefinition(String name, int r, int g, int b, Biome biome, int surfaceLayerHeight, boolean snowfall,
@@ -67,6 +68,14 @@ public class BiomeDefinition {
         this.veinTypes = veinTypes;
         this.schematicChance = schematicChance;
         this.schematics = schematics;
+
+        for (Schematic schematic : schematics) {
+            if (schematic.getDimensions().getBlockX() > maxSchematicSize) {
+                maxSchematicSize = schematic.getDimensions().getBlockX();
+            } else if (schematic.getDimensions().getBlockZ() > maxSchematicSize) {
+                maxSchematicSize = schematic.getDimensions().getBlockZ();
+            }
+        }
     }
 
 
@@ -304,6 +313,10 @@ public class BiomeDefinition {
             sum = sum + (int) (schematics.get(i++).chance * 100);
         }
         return schematics.get(Math.max(0, i - 1));
+    }
+
+    public int getMaxSchematicSize() {
+        return maxSchematicSize;
     }
 
     @Override
