@@ -74,48 +74,48 @@ public class SchematicPopulator implements ChunkPopulator {
             int inChunkX = Math.min(Math.max(schematicX, 0), 15);
             int inChunkZ = Math.min(Math.max(schematicZ, 0), 15);
 
-            int schematicY = Util.getHighestBlock(world, chunk, inChunkX, inChunkZ) + 1;
-
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
-                if (biomeDefinition.isGroundBlock(chunk.getBlockData(inChunkX, schematicY - 1, inChunkZ))) {
-                    BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
+                BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
 
-                    // initialize the values needed to rotate the schematic
-                    int rotation = random.nextInt(4);
-                    // Whether or not the schematic points into north or south direction
-                    boolean northSouth = rotation % 2 == 0;
-                    int xMod;
-                    int zMod;
-                    if (rotation < 2) {
-                        xMod = 1;
-                    } else {
-                        xMod = -1;
-                    }
-                    if (rotation > 0 && rotation < 3) {
-                        zMod = -1;
-                    } else {
-                        zMod = 1;
-                    }
+                // initialize the values needed to rotate the schematic
+                int rotation = random.nextInt(4);
+                // Whether or not the schematic points into north or south direction
+                boolean northSouth = rotation % 2 == 0;
+                int xMod;
+                int zMod;
+                if (rotation < 2) {
+                    xMod = 1;
+                } else {
+                    xMod = -1;
+                }
+                if (rotation > 0 && rotation < 3) {
+                    zMod = -1;
+                } else {
+                    zMod = 1;
+                }
 
-                    int schematicWidth = northSouth
-                            ? schematic.getDimensions().getBlockX()
-                            : schematic.getDimensions().getBlockZ();
-                    int schematicHeight = schematic.getDimensions().getBlockY();
-                    int schematicLength = northSouth
-                            ? schematic.getDimensions().getBlockZ()
-                            : schematic.getDimensions().getBlockX();
+                int schematicWidth = northSouth
+                        ? schematic.getDimensions().getBlockX()
+                        : schematic.getDimensions().getBlockZ();
+                int schematicHeight = schematic.getDimensions().getBlockY();
+                int schematicLength = northSouth
+                        ? schematic.getDimensions().getBlockZ()
+                        : schematic.getDimensions().getBlockX();
 
-                    int startX = (chunkX * 16 - schematicWidth / 2) % schematicWidth;
-                    while (startX < 0) {
-                        startX = schematicWidth + startX;
-                    }
-                    int startZ = (chunkZ * 16 - schematicLength / 2) % schematicLength;
-                    while (startZ < 0) {
-                        startZ = schematicLength + startZ;
-                    }
+                int startX = schematicX - schematicWidth / 2;
+                int startZ = schematicZ - schematicLength / 2;
 
+                // Get center height
+                int schematicY = worldConfiguration.getHeight((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ) + 1;
+                // Check actual chunk highest block if the full schematic is in the chunk
+                int schematicOffset = schematic.getYOffset();
+                if (startX >= 0 && startX + schematicWidth < 16 && startZ >= 0 && startZ + schematicLength < 16) {
+                    schematicY = Util.getHighestBlock(world, chunk, schematicX, schematicZ);
+                    // Check if valid ground block, continue if not
+                    if (!biomeDefinition.isGroundBlock(chunk.getBlockData(inChunkX, schematicY - 1, inChunkZ))) {
+                        continue;
+                    }
                     // Try putting schematic on floor
-                    int schematicOffset = schematic.getYOffset();
                     boolean foundSolid = false;
                     for (int testedY = 0; testedY < schematicHeight && !foundSolid; testedY++) {
                         for (int x = 0; x < schematicWidth; x++) {
@@ -138,15 +138,17 @@ public class SchematicPopulator implements ChunkPopulator {
                             }
                         }
                     }
+                }
 
-                    for (int x = 0; x < 16; x++) {
-                        int schemX = (startX + x) % schematicWidth;
-                        for (int z = 0; z < 16; z++) {
-                            int schemZ = (startZ + z) % schematicLength;
-                            for (int y = 0; y < schematic.getDimensions().getBlockY(); y++) {
-                                BlockData block = schematic.getBlock(xMod * (northSouth ? schemX : schemZ), y, zMod * (northSouth ? schemZ : schemX));
+                for (int x = 0; x < schematicWidth; x++) {
+                    for (int z = 0; z < schematicLength; z++) {
+                        int schemX = schematicX - xMod * schematicWidth / 2 + xMod * (northSouth ? x : z);
+                        int schemZ = schematicZ - xMod * schematicLength / 2 + zMod * (northSouth ? z : x);
+                        if (schemZ >= 0 && schemZ < 16 && schemX >= 0 && schemX < 16) {
+                            for (int y = 0; y < schematicHeight; y++) {
+                                BlockData block = schematic.getBlock(x, y, z);
                                 if (block != null && !block.getMaterial().isAir()) {
-                                    chunk.setBlock(x, schematicY + schematicOffset + y, z, block);
+                                    chunk.setBlock(schemX, schematicY + schematicOffset + y, schemZ, Util.rotateBlock(block, rotation));
                                 }
                             }
                         }

@@ -3,15 +3,20 @@ package io.github.apfelcreme.BitmapGenerator;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Attachable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.generator.ChunkGenerator;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 /**
  * Copyright (C) 2017 Lord36 aka Apfelcreme
@@ -110,5 +115,18 @@ public class Util {
             }
         }
         return blocks;
+    }
+
+    public static BlockData rotateBlock(BlockData block, int rotation) {
+        if (rotation == 0) {
+            return block;
+        }
+        if (block instanceof Directional) {
+            BlockFace rotated = BlockFace.values()[((Directional) block).getFacing().ordinal() + rotation % 4];
+            if (((Directional) block).getFaces().contains(rotated)) {
+                ((Directional) block).setFacing(rotated);
+            }
+        }
+        return block;
     }
 }
