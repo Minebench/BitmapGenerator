@@ -1,9 +1,9 @@
 package io.github.apfelcreme.BitmapGenerator.Populator;
 
 import io.github.apfelcreme.BitmapGenerator.BiomeDefinition;
-import io.github.apfelcreme.BitmapGenerator.Util;
 import io.github.apfelcreme.BitmapGenerator.WorldConfiguration;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.data.type.Snow;
 import org.bukkit.generator.ChunkGenerator;
@@ -46,14 +46,15 @@ public class SnowPopulator implements ChunkPopulator {
                     if (worldConfiguration.getBiomeDefinition(snowX, snowZ).equals(biomeDefinition)) {
                         for (int y = worldConfiguration.getHeight(snowX, snowZ); y < world.getMaxHeight(); y++) {
                             byte snowHeight = worldConfiguration.getSnowHeight(snowX, snowZ);
-                            if (snowHeight > 0 && chunk.getType(x, y - 1, z).isSolid()) {
+                            Material below = chunk.getType(x, y - 1, z);
+                            if (snowHeight > 0 && below.isSolid()) {
                                 Material type = chunk.getType(x, y, z);
                                 if (type.isAir()) {
                                     Snow snow = (Snow) Material.SNOW.createBlockData();
                                     snow.setLayers(snowHeight);
                                     chunk.setBlock(x, y, z, snow);
                                 }
-                                if (!type.isSolid()) {
+                                if (!type.isSolid() && biomeDefinition.isGroundBlock(below.createBlockData())) {
                                     chunk.setBlock(x, y - 1, z, Material.SNOW_BLOCK);
                                 }
                             }
