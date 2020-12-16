@@ -41,10 +41,10 @@ public class BitmapWorldGenerator extends ChunkGenerator {
         if (!worldConfiguration.isGeneratingVanillaCaves()) {
             chunkPopulators.add(new CavePopulator(worldConfiguration));
         }
+        chunkPopulators.add(new OrePopulator(worldConfiguration));
         chunkPopulators.add(new SchematicPopulator(worldConfiguration));
         chunkPopulators.add(new FloraPopulator(worldConfiguration));
         chunkPopulators.add(new SnowPopulator(worldConfiguration));
-        chunkPopulators.add(new OrePopulator(worldConfiguration));
     }
 
     @Override
