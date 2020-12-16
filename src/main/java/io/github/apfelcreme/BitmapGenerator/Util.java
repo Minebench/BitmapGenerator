@@ -103,14 +103,14 @@ public class Util {
      * @return
      */
     public static BlockData[][][] getBlocks(Clipboard clipboard) {
-        int diffX = clipboard.getMaximumPoint().getX() - clipboard.getMinimumPoint().getX();
-        int diffY = clipboard.getMaximumPoint().getY() - clipboard.getMinimumPoint().getY();
-        int diffZ = clipboard.getMaximumPoint().getZ() - clipboard.getMinimumPoint().getZ();
-        BlockData[][][] blocks = new BlockData[diffX][diffY][diffZ];
+        int diffX = clipboard.getDimensions().getBlockX();
+        int diffY = clipboard.getDimensions().getBlockY();
+        int diffZ = clipboard.getDimensions().getBlockZ();
+        BlockData[][][] blocks = new BlockData[diffX][diffZ][diffY];
         for (int x = 0; x < diffX; x++) {
-            for (int y = 0; y < diffY; y++) {
-                for (int z = 0; z < diffZ; z++) {
-                    blocks[x][y][z] = BukkitAdapter.adapt(clipboard.getFullBlock(clipboard.getMinimumPoint().add(x, y, z)));
+            for (int z = 0; z < diffZ; z++) {
+                for (int y = 0; y < diffY; y++) {
+                    blocks[x][z][y] = BukkitAdapter.adapt(clipboard.getFullBlock(clipboard.getMinimumPoint().add(x, y, z)));
                 }
             }
         }
@@ -124,9 +124,18 @@ public class Util {
         if (block instanceof Directional) {
             BlockFace rotated = BlockFace.values()[((Directional) block).getFacing().ordinal() + rotation % 4];
             if (((Directional) block).getFaces().contains(rotated)) {
+                block = block.clone();
                 ((Directional) block).setFacing(rotated);
             }
         }
         return block;
+    }
+
+    public static BlockData[] rotateBlocks(BlockData[] blocks, int rotation) {
+        BlockData[] newBlocks = new BlockData[blocks.length];
+        for (int i = 0; i < blocks.length; i++) {
+            newBlocks[i] = rotateBlock(blocks[i], rotation);
+        }
+        return newBlocks;
     }
 }

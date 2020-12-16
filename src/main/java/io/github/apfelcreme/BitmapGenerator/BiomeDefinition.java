@@ -425,10 +425,20 @@ public class BiomeDefinition {
         private final int yOffset;
         private final double chance;
 
+        private Schematic[] rotated = new Schematic[3];
+
         public Schematic(String name, Clipboard clipboard, int yOffset, double chance) {
             this.name = name;
             this.dimensions = clipboard.getDimensions();
             this.blocks = Util.getBlocks(clipboard);
+            this.yOffset = yOffset;
+            this.chance = chance;
+        }
+
+        public Schematic(String name, BlockData[][][] blocks, int yOffset, double chance) {
+            this.name = name;
+            this.dimensions = BlockVector3.at(blocks.length, blocks[0][0].length, blocks[0].length);
+            this.blocks = blocks;
             this.yOffset = yOffset;
             this.chance = chance;
         }
@@ -452,11 +462,52 @@ public class BiomeDefinition {
 
         public BlockData getBlock(int x, int y, int z) {
             if (x >= 0 && x < blocks.length
-                    && y >= 0 && y < blocks[x].length
-                    && z >= 0 && z < blocks[x][y].length) {
-                return blocks[x][y][z];
+                    && z >= 0 && z < blocks[x].length
+                    && y >= 0 && y < blocks[x][z].length) {
+                return blocks[x][z][y];
             }
             return null;
+        }
+
+        public Schematic rotate(int rotation) {
+            if (rotation == 0) {
+                return this;
+            }
+
+            if (rotated[rotation - 1] != null) {
+                return rotated[rotation -1];
+            }
+
+            BlockData[][][] newBlocks;
+
+            if (rotation == 1) {
+                newBlocks = new BlockData[getDimensions().getBlockZ()][getDimensions().getBlockX()][];
+                for (int x = 0; x < getDimensions().getBlockX(); x++) {
+                    for (int z = 0; z < getDimensions().getBlockZ(); z++) {
+                        newBlocks[getDimensions().getBlockZ() - 1 - z][x] = Util.rotateBlocks(blocks[x][z], rotation);
+                    }
+                }
+            } else if (rotation == 2) {
+                newBlocks = new BlockData[getDimensions().getBlockX()][getDimensions().getBlockZ()][];
+                for (int x = 0; x < getDimensions().getBlockX(); x++) {
+                    for (int z = 0; z < getDimensions().getBlockZ(); z++) {
+                        newBlocks[getDimensions().getBlockX() - 1 - x][getDimensions().getBlockZ() - 1 - z] = Util.rotateBlocks(blocks[x][z], rotation);
+                    }
+                }
+            } else if (rotation == 3) {
+                newBlocks = new BlockData[getDimensions().getBlockZ()][getDimensions().getBlockX()][];
+                for (int x = 0; x < getDimensions().getBlockX(); x++) {
+                    for (int z = 0; z < getDimensions().getBlockZ(); z++) {
+                        newBlocks[z][getDimensions().getBlockX() - 1 - x] = Util.rotateBlocks(blocks[x][z], rotation);
+                    }
+                }
+            } else {
+                return this;
+            }
+
+            Schematic schematic = new Schematic(name, newBlocks, yOffset, chance);
+            rotated[rotation - 1] = schematic;
+            return schematic;
         }
     }
 

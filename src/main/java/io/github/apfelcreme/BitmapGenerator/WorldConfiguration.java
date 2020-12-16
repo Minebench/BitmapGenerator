@@ -457,7 +457,7 @@ public class WorldConfiguration {
                 }
             }
             double schematicCount = biomeConfig.getDouble("schematicChance");
-            boolean rotateSchematics = biomeConfig.getBoolean("schematicRotate");
+            boolean rotateSchematics = biomeConfig.getBoolean("schematicRotate", true);
             List<BiomeDefinition.Schematic> schematics = new ArrayList<>();
             if (biomeConfig.get("schematics") != null) {
                 for (String schematicName : biomeConfig.getConfigurationSection("schematics").getKeys(false)) {

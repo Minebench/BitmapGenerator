@@ -75,30 +75,13 @@ public class SchematicPopulator implements ChunkPopulator {
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
                 BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
 
-                // initialize the values needed to rotate the schematic
-                int rotation = biomeDefinition.isRotateSchematics() ? random.nextInt(4) : 0;
-                // Whether or not the schematic points into north or south direction
-                boolean northSouth = rotation % 2 == 0;
-                int xMod;
-                int zMod;
-                if (rotation < 2) {
-                    xMod = 1;
-                } else {
-                    xMod = -1;
-                }
-                if (rotation > 0 && rotation < 3) {
-                    zMod = -1;
-                } else {
-                    zMod = 1;
+                if (biomeDefinition.isRotateSchematics()) {
+                    schematic = schematic.rotate(random.nextInt(4));
                 }
 
-                int schematicWidth = northSouth
-                        ? schematic.getDimensions().getBlockX()
-                        : schematic.getDimensions().getBlockZ();
+                int schematicWidth = schematic.getDimensions().getBlockX();
                 int schematicHeight = schematic.getDimensions().getBlockY();
-                int schematicLength = northSouth
-                        ? schematic.getDimensions().getBlockZ()
-                        : schematic.getDimensions().getBlockX();
+                int schematicLength = schematic.getDimensions().getBlockZ();
 
                 int startX = schematicX - schematicWidth / 2;
                 int startZ = schematicZ - schematicLength / 2;
@@ -119,7 +102,7 @@ public class SchematicPopulator implements ChunkPopulator {
                         for (int x = 0; x < schematicWidth; x++) {
                             for (int z = 0; z < schematicLength; z++) {
                                 // Create the rotated vector
-                                BlockData b = schematic.getBlock(xMod * (northSouth ? x : z), testedY, zMod * (northSouth ? z : x));
+                                BlockData b = schematic.getBlock(x, testedY, z);
                                 if (b != null && !b.getMaterial().isAir()) {
                                     for (int offset = schematicOffset; offset > 0; offset--) {
                                         Material type = chunk.getType(
@@ -140,14 +123,14 @@ public class SchematicPopulator implements ChunkPopulator {
 
                 for (int x = 0; x < schematicWidth; x++) {
                     for (int z = 0; z < schematicLength; z++) {
-                        int schemX = schematicX - xMod * schematicWidth / 2 + xMod * (northSouth ? x : z);
-                        int schemZ = schematicZ - xMod * schematicLength / 2 + zMod * (northSouth ? z : x);
+                        int schemX = startX + x;
+                        int schemZ = startZ + z;
                         if (schemZ >= 0 && schemZ < 16 && schemX >= 0 && schemX < 16) {
                             for (int y = 0; y < schematicHeight; y++) {
                                 BlockData block = schematic.getBlock(x, y, z);
                                 if (block != null && !block.getMaterial().isAir()
                                         && !chunk.getType(schemX, schematicY + schematicOffset + y, schemZ).isSolid()) {
-                                    chunk.setBlock(schemX, schematicY + schematicOffset + y, schemZ, Util.rotateBlock(block, rotation));
+                                    chunk.setBlock(schemX, schematicY + schematicOffset + y, schemZ, block);
                                 }
                             }
                         }
