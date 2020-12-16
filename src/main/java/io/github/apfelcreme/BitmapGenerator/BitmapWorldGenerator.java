@@ -49,7 +49,7 @@ public class BitmapWorldGenerator extends ChunkGenerator {
     }
 
     public Location getFixedSpawnLocation(World world, Random random) {
-        return new Location(world, worldConfiguration.getWidthX() / 2d, worldConfiguration.getWaterHeight() + 30, worldConfiguration.getWidthZ() / 2d);
+        return new Location(world, 0, worldConfiguration.getWaterHeight() + 30, 0);
     }
 
     @Override

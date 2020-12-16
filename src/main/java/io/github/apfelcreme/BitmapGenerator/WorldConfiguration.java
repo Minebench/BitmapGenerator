@@ -68,9 +68,6 @@ public class WorldConfiguration {
     private Integer[][] heightMap = null;
     private Integer[][] riverMap = null;
 
-    private int widthX;
-    private int widthZ;
-
     private boolean vanillaCaves;
     private boolean vanillaDecorations;
     private boolean vanillaMobs;
@@ -316,8 +313,6 @@ public class WorldConfiguration {
         // Find all colors used in the biome map file
         plugin.getLogger().info(prefix + "Loading biomes from image...");
         Set<Integer> rgbValues = new HashSet<>();
-        widthX = biomeImage.getWidth();
-        widthZ = biomeImage.getHeight();
         biomeMap = new BiomeDefinition[biomeImage.getWidth()][biomeImage.getHeight()];
         for (int x = 0; x < biomeImage.getWidth(); x++) {
             if (x % 1000 == 0) {
@@ -690,14 +685,6 @@ public class WorldConfiguration {
 
     public double getCaveRadius() {
         return caveRadius;
-    }
-
-    public int getWidthX() {
-        return widthX;
-    }
-
-    public int getWidthZ() {
-        return widthZ;
     }
 
     /**
