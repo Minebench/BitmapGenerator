@@ -63,7 +63,10 @@ public class SchematicPopulator implements ChunkPopulator {
                 }
 
                 for (int i = 0; i < schematicCount; i++) {
-                    schemCoords.add(new SchematicConfig(x * 16 + chunkRandom.nextInt(16), z * 16 + chunkRandom.nextInt(16), chunkRandom.nextInt(4)));
+                    schemCoords.add(new SchematicConfig(
+                            x * 16 + chunkRandom.nextInt(16), z * 16 + chunkRandom.nextInt(16),
+                            biomeDefinition.nextSchematic(chunkRandom),
+                            chunkRandom.nextInt(4)));
                 }
             }
         }
@@ -73,7 +76,7 @@ public class SchematicPopulator implements ChunkPopulator {
             int schematicZ = schematicConf.getZ();
 
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
-                BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
+                BiomeDefinition.Schematic schematic = schematicConf.getSchematic();
 
                 if (biomeDefinition.isRotateSchematics()) {
                     schematic = schematic.rotate(schematicConf.getRotation());
@@ -143,11 +146,13 @@ public class SchematicPopulator implements ChunkPopulator {
     private class SchematicConfig {
         private final int x;
         private final int z;
+        private final BiomeDefinition.Schematic schematic;
         private final int rotation;
 
-        private SchematicConfig(int x, int z, int rotation) {
+        private SchematicConfig(int x, int z, BiomeDefinition.Schematic schematic, int rotation) {
             this.x = x;
             this.z = z;
+            this.schematic = schematic;
             this.rotation = rotation;
         }
 
@@ -157,6 +162,10 @@ public class SchematicPopulator implements ChunkPopulator {
 
         public int getZ() {
             return z;
+        }
+
+        public BiomeDefinition.Schematic getSchematic() {
+            return schematic;
         }
 
         public int getRotation() {
