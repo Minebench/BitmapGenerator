@@ -44,13 +44,14 @@ public class BiomeDefinition {
     private List<OreVein> veinTypes;
     private double schematicChance;
     private List<Schematic> schematics;
+    private boolean rotateSchematics;
     private int maxSchematicSize = 0;
 
 
     public BiomeDefinition(String name, int r, int g, int b, Biome biome, int surfaceLayerHeight, boolean snowfall,
                            List<BlockChance> blocks, double floraChance, List<BlockChance> floraTypes, double treeChance,
                            List<TreeData> treeTypes, double veinChance, List<OreVein> veinTypes, double schematicChance,
-                           List<Schematic> schematics) {
+                           List<Schematic> schematics, boolean rotateSchematics) {
         this.name = name;
         this.rgb = (255 << 24)
                 | (r << 16)
@@ -68,6 +69,7 @@ public class BiomeDefinition {
         this.veinTypes = veinTypes;
         this.schematicChance = schematicChance;
         this.schematics = schematics;
+        this.rotateSchematics = rotateSchematics;
 
         for (Schematic schematic : schematics) {
             if (schematic.getDimensions().getBlockX() > maxSchematicSize) {
@@ -317,6 +319,10 @@ public class BiomeDefinition {
 
     public int getMaxSchematicSize() {
         return maxSchematicSize;
+    }
+
+    public boolean isRotateSchematics() {
+        return rotateSchematics;
     }
 
     @Override
