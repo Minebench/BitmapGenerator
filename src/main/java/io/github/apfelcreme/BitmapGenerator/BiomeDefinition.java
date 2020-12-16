@@ -336,6 +336,11 @@ public class BiomeDefinition {
         return !(name != null ? !name.equals(that.name) : that.name != null);
     }
 
+    @Override
+    public int hashCode() {
+        return name.hashCode() * 37 + rgb;
+    }
+
     /**
      * a class to represent a block type
      */

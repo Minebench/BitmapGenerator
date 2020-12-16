@@ -10,8 +10,10 @@ import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Copyright (C) 2017 Lord36 aka Apfelcreme
@@ -56,7 +58,7 @@ public class BitmapWorldGenerator extends ChunkGenerator {
     public synchronized ChunkData generateChunkData(World world, Random random, int x, int z, BiomeGrid biome) {
         ChunkData data = createChunkData(world);
 
-        List<BiomeDefinition> biomes = new ArrayList<>();
+        Set<BiomeDefinition> biomes = new HashSet<>();
 
         for (int cX = 0; cX < 16; cX++) {
             for (int cZ = 0; cZ < 16; cZ++) {
