@@ -43,7 +43,7 @@ public class OrePopulator implements ChunkPopulator {
         if (biomeDefinition.getVeinChance() < 1) {
             veinCount = random.nextDouble() <= biomeDefinition.getVeinChance() ? 1 : 0;
         } else {
-            veinCount = (int) biomeDefinition.getVeinChance();
+            veinCount = biomeDefinition.getVeinChance() / 2 + random.nextInt((int) biomeDefinition.getVeinChance());
         }
         for (int i = 0; i < veinCount; i++) {
             BiomeDefinition.OreVein vein = biomeDefinition.nextVein(random);

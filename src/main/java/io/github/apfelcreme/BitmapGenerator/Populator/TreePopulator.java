@@ -44,7 +44,7 @@ public class TreePopulator extends BlockPopulator {
             if (biomeDefinition.getTreeChance() < 1) {
                 treeCount = random.nextDouble() <= biomeDefinition.getTreeChance() ? 1 : 0;
             } else {
-                treeCount = (int) biomeDefinition.getTreeChance();
+                treeCount = biomeDefinition.getTreeChance() / 2 + random.nextInt((int) biomeDefinition.getTreeChance());
             }
             for (int i = 0; i < treeCount; i++) {
                 int treeX = (chunk.getX() << 4) + random.nextInt(16);

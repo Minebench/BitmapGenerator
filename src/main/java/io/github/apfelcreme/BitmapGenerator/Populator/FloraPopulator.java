@@ -45,7 +45,7 @@ public class FloraPopulator implements ChunkPopulator {
         if (biomeDefinition.getFloraChance() < 1) {
             floraCount = random.nextDouble() <= biomeDefinition.getFloraChance() ? 1 : 0;
         } else {
-            floraCount = (int) biomeDefinition.getFloraChance();
+            floraCount = biomeDefinition.getFloraChance() / 2 + random.nextInt((int) biomeDefinition.getFloraChance());
         }
         for (int i = 0; i < floraCount; i++) {
             int floraX = random.nextInt(16);
