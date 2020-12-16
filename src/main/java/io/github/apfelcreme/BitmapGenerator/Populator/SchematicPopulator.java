@@ -56,6 +56,10 @@ public class SchematicPopulator implements ChunkPopulator {
                     schematicCount = chunkRandom.nextDouble() <= biomeDefinition.getSchematicChance() ? 1 : 0;
                 } else {
                     schematicCount = (int) biomeDefinition.getSchematicChance();
+                    double maxInChunk = (schematicCount * schematicCount) / (biomeDefinition.getMaxSchematicSize() * biomeDefinition.getMaxSchematicSize());
+                    if (schematicCount > maxInChunk) {
+                        schematicCount = maxInChunk;
+                    }
                 }
 
                 for (int i = 0; i < schematicCount; i++) {
