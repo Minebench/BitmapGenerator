@@ -1,12 +1,10 @@
 package io.github.apfelcreme.BitmapGenerator;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -39,6 +37,16 @@ public class BitmapGeneratorPlugin extends JavaPlugin {
 
     public void onDisable() {
         worldConfigurations.clear();
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length > 0 && "reload".equalsIgnoreCase(args[0])) {
+            worldConfigurations.clear();
+            sender.sendMessage("Reloaded!");
+            return true;
+        }
+        return false;
     }
 
     /**
