@@ -42,13 +42,13 @@ public class SchematicPopulator implements ChunkPopulator {
     public synchronized void populate(World world, Random random, int chunkX, int chunkZ, ChunkGenerator.ChunkData chunk, BiomeDefinition biomeDefinition) {
         int searchRadius = (int) Math.ceil(biomeDefinition.getMaxSchematicSize() / 16d);
 
-        List<ChunkCoord> schemCoords = new ArrayList<>();
+        List<SchematicConfig> schemCoords = new ArrayList<>();
 
         for (int x = -searchRadius; x <= searchRadius; x++) {
             for (int z = -searchRadius; z <= searchRadius; z++) {
                 long chunkSeed = world.getSeed();
-                chunkSeed = 37 * chunkSeed + x;
-                chunkSeed = 37 * chunkSeed + z;
+                chunkSeed = 37 * chunkSeed + chunkX + x;
+                chunkSeed = 37 * chunkSeed + chunkZ + z;
                 Random chunkRandom = new Random(chunkSeed);
 
                 double schematicCount;
@@ -63,20 +63,20 @@ public class SchematicPopulator implements ChunkPopulator {
                 }
 
                 for (int i = 0; i < schematicCount; i++) {
-                    schemCoords.add(new ChunkCoord(x * 16 + chunkRandom.nextInt(16), z * 16 + chunkRandom.nextInt(16)));
+                    schemCoords.add(new SchematicConfig(x * 16 + chunkRandom.nextInt(16), z * 16 + chunkRandom.nextInt(16), chunkRandom.nextInt(4)));
                 }
             }
         }
 
-        for (ChunkCoord coord : schemCoords) {
-            int schematicX = coord.getX();
-            int schematicZ = coord.getZ();
+        for (SchematicConfig schematicConf : schemCoords) {
+            int schematicX = schematicConf.getX();
+            int schematicZ = schematicConf.getZ();
 
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
                 BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
 
                 if (biomeDefinition.isRotateSchematics()) {
-                    schematic = schematic.rotate(random.nextInt(4));
+                    schematic = schematic.rotate(schematicConf.getRotation());
                 }
 
                 int schematicWidth = schematic.getDimensions().getBlockX();
@@ -140,13 +140,15 @@ public class SchematicPopulator implements ChunkPopulator {
         }
     }
 
-    private class ChunkCoord {
+    private class SchematicConfig {
         private final int x;
         private final int z;
+        private final int rotation;
 
-        private ChunkCoord(int x, int z) {
+        private SchematicConfig(int x, int z, int rotation) {
             this.x = x;
             this.z = z;
+            this.rotation = rotation;
         }
 
         public int getX() {
@@ -155,6 +157,10 @@ public class SchematicPopulator implements ChunkPopulator {
 
         public int getZ() {
             return z;
+        }
+
+        public int getRotation() {
+            return rotation;
         }
     }
 }

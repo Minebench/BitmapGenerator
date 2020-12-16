@@ -74,7 +74,8 @@ public class BiomeDefinition {
         for (Schematic schematic : schematics) {
             if (schematic.getDimensions().getBlockX() > maxSchematicSize) {
                 maxSchematicSize = schematic.getDimensions().getBlockX();
-            } else if (schematic.getDimensions().getBlockZ() > maxSchematicSize) {
+            }
+            if (schematic.getDimensions().getBlockZ() > maxSchematicSize) {
                 maxSchematicSize = schematic.getDimensions().getBlockZ();
             }
         }
