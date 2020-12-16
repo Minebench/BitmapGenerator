@@ -63,7 +63,7 @@ public class SchematicPopulator implements ChunkPopulator {
                 }
 
                 for (int i = 0; i < schematicCount; i++) {
-                    schemCoords.add(new ChunkCoord(chunkRandom.nextInt(16), chunkRandom.nextInt(16)));
+                    schemCoords.add(new ChunkCoord(x * 16 + chunkRandom.nextInt(16), z * 16 + chunkRandom.nextInt(16)));
                 }
             }
         }
@@ -71,8 +71,6 @@ public class SchematicPopulator implements ChunkPopulator {
         for (ChunkCoord coord : schemCoords) {
             int schematicX = coord.getX();
             int schematicZ = coord.getZ();
-            int inChunkX = Math.min(Math.max(schematicX, 0), 15);
-            int inChunkZ = Math.min(Math.max(schematicZ, 0), 15);
 
             if (worldConfiguration.getBiomeDefinition((chunkX << 4) + schematicX, (chunkZ << 4) + schematicZ).equals(biomeDefinition)) {
                 BiomeDefinition.Schematic schematic = biomeDefinition.nextSchematic(random);
@@ -112,7 +110,7 @@ public class SchematicPopulator implements ChunkPopulator {
                 if (startX >= 0 && startX + schematicWidth < 16 && startZ >= 0 && startZ + schematicLength < 16) {
                     schematicY = Util.getHighestBlock(world, chunk, schematicX, schematicZ);
                     // Check if valid ground block, continue if not
-                    if (!biomeDefinition.isGroundBlock(chunk.getBlockData(inChunkX, schematicY - 1, inChunkZ))) {
+                    if (!biomeDefinition.isGroundBlock(chunk.getBlockData(schematicX, schematicY - 1, schematicZ))) {
                         continue;
                     }
                     // Try putting schematic on floor
