@@ -2,6 +2,7 @@ package io.github.apfelcreme.BitmapGenerator;
 
 import io.github.apfelcreme.BitmapGenerator.Populator.ChunkPopulator;
 import io.github.apfelcreme.BitmapGenerator.Populator.*;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
@@ -45,6 +46,10 @@ public class BitmapWorldGenerator extends ChunkGenerator {
         chunkPopulators.add(new SchematicPopulator(worldConfiguration));
         chunkPopulators.add(new FloraPopulator(worldConfiguration));
         chunkPopulators.add(new SnowPopulator(worldConfiguration));
+    }
+
+    public Location getFixedSpawnLocation(World world, Random random) {
+        return new Location(world, worldConfiguration.getWidthX() / 2d, worldConfiguration.getWaterHeight() + 30, worldConfiguration.getWidthZ() / 2d);
     }
 
     @Override
